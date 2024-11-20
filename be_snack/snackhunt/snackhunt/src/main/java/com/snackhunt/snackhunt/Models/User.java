@@ -1,16 +1,37 @@
 package com.snackhunt.snackhunt.Models;
 
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.annotation.Transient;
 
-@Document(collection = "User")
+
+@Document(collection = "users")
 public class User {
-    private int id;
 
+    @Transient
+    public static final String SEQUENCE_NAME = "user_sequence";
+    
+    @Id
+    private int id;
     private String username;
     private String password;
     private String email;
     private String pfp;
     private String image_URL;
+
+
+    public User(){}
+
+
+    public User(int id, String username, String password, String email, String pfp, String image_URL) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.pfp = pfp;
+        this.image_URL = image_URL;
+    }
 
     // Getter dan Setter
     public int getId() {
