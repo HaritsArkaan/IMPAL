@@ -17,14 +17,14 @@ function Dashboard() {
           <img
             src={Logo}
             alt="Snack Hunt Logo"
-            className="w-[100px] h-[30px] object-contain"
+            className="w-[130px] h-[600px] object-contain"
           />
           <div className="flex w-full max-w-md items-center px-4">
             <div className="relative w-full">
               <input
                 type="text"
                 placeholder="mau jajan apa hari ini?"
-                className="w-full bg-[#E1E9DB] pr-8 pl-3 py-2 text-sm rounded-full"
+                className="w-full bg-[#E1E9DB] pr-8 pl-3 py-2 text-center rounded-full"
               />
               <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
             </div>
