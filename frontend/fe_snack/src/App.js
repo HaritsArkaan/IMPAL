@@ -2,10 +2,18 @@ import logo from './logo.svg';
 import "./App.css";
 import Dashboard from "./component/dashboard";
 import Filter from './component/filter';
+import { Route } from 'react-router-dom';
+import { BrowserRouter, Routes } from 'react-router-dom';
 
 function App() {
   return (
-    <Filter />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Dashboard/>}/>
+        <Route path="/filter" element={<Filter/>}/>
+      </Routes>
+    </BrowserRouter>
+    
   );
 }
 

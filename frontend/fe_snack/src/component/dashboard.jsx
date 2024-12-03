@@ -4,6 +4,7 @@ import Corndog from "../photo/corndog.jpg"
 import Risol from "../photo/risol.jpg"
 import Mie from "../photo/mie-rendang.jpg"
 import Kelapa from "../photo/es-kelapa.jpg"
+import { Link } from 'react-router-dom';
 
 import { Search, Menu, Filter, PlusCircle, Heart, Star } from 'lucide-react';
 
@@ -40,10 +41,10 @@ function Dashboard() {
             <Menu className="h-4 w-4" />
             <span className="text-sm">Menu</span>
           </a>
-          <a href="/filter" className="flex items-center space-x-1">
+          <Link to ="/filter" className="flex items-center space-x-1">
             <Filter className="h-4 w-4" />
             <span className="text-sm">Filter Jajanan</span>
-          </a>
+          </Link>
           <a href="/add" className="flex items-center space-x-1">
             <PlusCircle className="h-4 w-4" />
             <span className="text-sm">Tambah Jajanan</span>
