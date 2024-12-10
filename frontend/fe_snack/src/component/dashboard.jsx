@@ -11,7 +11,7 @@ import { Search, Menu, Filter, PlusCircle, Heart, Star } from 'lucide-react';
 
 function Dashboard() {
     return (
-        <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="sticky top-0 z-50 w-full bg-white">
         <div className="flex h-16 items-center justify-between px-4">

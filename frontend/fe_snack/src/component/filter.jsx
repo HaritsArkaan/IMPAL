@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Search, Menu, Filter, PlusCircle, Heart, Check } from 'lucide-react';
 import { IconSalad, IconMilkshake, IconPepper, IconMeat, IconLollipop, IconLemon, IconUserCircle } from "@tabler/icons-react";
 
@@ -63,6 +64,10 @@ function FilterPage() {
             <Menu className="h-4 w-4" />
             <span className="text-sm">Menu</span>
           </a>
+          <Link to ="/filter" className="flex items-center space-x-1">
+            <Filter className="h-4 w-4" />
+            <span className="text-sm">Filter Jajanan</span>
+          </Link>
           <a href="/add" className="flex items-center space-x-1">
             <PlusCircle className="h-4 w-4" />
             <span className="text-sm">Tambah Jajanan</span>

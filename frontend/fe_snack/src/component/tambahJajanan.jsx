@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { Menu, Filter, Heart, User, Upload } from 'lucide-react';
+
+import { Link } from 'react-router-dom';
+
+import { Search, Menu, Filter, PlusCircle, Heart, Star, Upload } from 'lucide-react';
 import Logo from "../photo/logo.jpg";
 
 function TambahJajanan() {
@@ -14,29 +17,51 @@ function TambahJajanan() {
   const primaryColor = "rgb(112, 174, 110)";
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="flex items-center justify-between mb-8">
-        <img src={Logo} alt="Snack Hunt Logo" width={100} height={40} />
-        <div className="flex items-center gap-6">
-          <button className="flex items-center gap-2">
-            <Menu size={24} />
-            <span>Menu</span>
-          </button>
-          <button className="flex items-center gap-2">
-            <Filter size={24} />
-            <span>Filter Jajanan</span>
-          </button>
-          <button className="flex items-center gap-2">
-            <Heart size={24} />
-            <span>Favoritku</span>
+      <header className="sticky top-0 z-50 w-full bg-white">
+        <div className="flex h-16 items-center justify-between px-4">
+          <img
+            src={Logo}
+            alt="Snack Hunt Logo"
+            className="w-[130px] h-[600px] object-contain"
+          />
+          <div className="flex w-full max-w-md items-center px-4">
+            <div className="relative w-full">
+              <input
+                type="text"
+                placeholder="mau jajan apa hari ini?"
+                className="w-full bg-[#E1E9DB] pr-8 pl-3 py-2 text-center rounded-full"
+              />
+              <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+            </div>
+          </div>
+          <button className="bg-[#E1E9DB] hover:bg-[#d4dece] rounded-full text-sm px-4 py-2">
+            Masuk
           </button>
         </div>
-        <button aria-label="Profile">
-          <User size={24} />
-        </button>
+        
+        {/* Navigation */}
+        <nav className="flex items-center justify-center space-x-8 px-4 py-2">
+          <a href="/" className="flex items-center space-x-1">
+            <Menu className="h-4 w-4" />
+            <span className="text-sm">Menu</span>
+          </a>
+          <Link to ="/filter" className="flex items-center space-x-1">
+            <Filter className="h-4 w-4" />
+            <span className="text-sm">Filter Jajanan</span>
+          </Link>
+          <a href="/add" className="flex items-center space-x-1">
+            <PlusCircle className="h-4 w-4" />
+            <span className="text-sm">Tambah Jajanan</span>
+          </a>
+          <a href="/favorites" className="flex items-center space-x-1">
+            <Heart className="h-4 w-4" />
+            <span className="text-sm">Favoritku</span>
+          </a>
+        </nav>
       </header>
-
+      <div className="max-w-2xl mx-auto p-4">
       {/* Main Form */}
       <main>
         <h1
@@ -112,7 +137,7 @@ function TambahJajanan() {
           <label className="block mb-2">Jenis Jajanan</label>
           <p className="text-gray-500 text-sm mb-3">Pilih jenis yang menggambarkan jajananmu!</p>
           <div className="flex items-center gap-3">
-            {["Makanan", "Minuman"].map((type) => (
+            {["Makanan", "Minuman", "Pedas", "Asin", "Manis", "Asam"].map((type) => (
               <button
                 key={type}
                 onClick={() => {
@@ -187,6 +212,7 @@ function TambahJajanan() {
           </button>
         </div>
       </main>
+      </div>
     </div>
   );
 }
