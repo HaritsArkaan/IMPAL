@@ -2,7 +2,6 @@ package com.snackhunt.snackhunt.Models;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.Transient;
 
 
@@ -29,8 +28,7 @@ public class Snack {
 
 
 
-    public Snack(int id, String name, int price, String image, String image_URL, String seller, String contact, String location, double rating, String type, int userId) {
-        this.id = id;
+    public Snack(String name, int price, String image, String image_URL, String seller, String contact, String location, double rating, String type, int userId) {
         this.name = name;
         this.price = price;
         this.image = image;
