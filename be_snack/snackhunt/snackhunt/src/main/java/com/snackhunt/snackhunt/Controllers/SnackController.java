@@ -89,4 +89,20 @@ public class SnackController {
     public ResponseEntity<Void> deleteSnack(@PathVariable int id) {
         return snackService.deleteSnack(id) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
+
+    @GetMapping("/images/{filename}")
+    public ResponseEntity<byte[]> getImage(@PathVariable String filename) throws IOException {
+        Path filePath = Paths.get("./uploads", filename);
+
+        if (!Files.exists(filePath)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        byte[] image = Files.readAllBytes(filePath);
+        String contentType = Files.probeContentType(filePath); // Dapatkan tipe konten file secara otomatis
+
+        return ResponseEntity.ok()
+                .header("Content-Type", contentType != null ? contentType : "application/octet-stream")
+                .body(image);
+    }
 }
