@@ -57,7 +57,7 @@ public class SnackService {
         String filename = saveFile(file);
         if (filename != null) {
             snack.setImage(filename);
-            snack.setImage_URL("/api/snacks/images" + filename);
+            snack.setImage_URL("/api/snacks/images/" + filename);
         }
         snack.setId(sequenceGeneratorService.generateSequence(Snack.SEQUENCE_NAME));
         return snackRepository.save(snack);
