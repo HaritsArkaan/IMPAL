@@ -79,10 +79,51 @@ public class SnackController {
         .orElse(ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Snack> updateSnack(@PathVariable int id, @RequestBody Snack snackDetails) {
-        Snack updateSnack = snackService.updateSnack(id, snackDetails);
-        return updateSnack != null ? ResponseEntity.ok(updateSnack) : ResponseEntity.notFound().build();
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Object> updateSnack(
+        @PathVariable int id,
+        @RequestParam("name") String name,
+        @RequestParam("price") int price,
+        @RequestParam("seller") String seller,
+        @RequestParam("contact") String contact,
+        @RequestParam("location") String location,
+        @RequestParam("rating") double rating,
+        @RequestParam("type") String type,
+        @RequestParam("userId") int userId,
+        @RequestPart(value = "file", required = false) MultipartFile file) {
+
+            try {
+                name = URLDecoder.decode(name, StandardCharsets.UTF_8.toString());
+                seller = URLDecoder.decode(seller, StandardCharsets.UTF_8.toString());
+                contact = URLDecoder.decode(contact, StandardCharsets.UTF_8.toString());
+                location = URLDecoder.decode(location, StandardCharsets.UTF_8.toString());
+            } catch(Exception e) {
+                return ResponseEntity.badRequest().body(new Message("Error : " + e.getMessage()));
+            }
+
+            if (file != null) {
+                // Validasi file: tipe MIME
+                String contentType = file.getContentType();
+                if (contentType == null || 
+                    !(contentType.equals("image/jpeg") || contentType.equals("image/png"))) {
+                    return ResponseEntity.badRequest().body(new Message("Error : File harus berupa gambar JPEG atau PNG"));
+                }
+    
+                // Validasi file: ukuran
+                long fileSizeInBytes = file.getSize();
+                long maxFileSizeInBytes = 10 * 1024 * 1024; // 5 MB
+                if (fileSizeInBytes > maxFileSizeInBytes) {
+                    return ResponseEntity.badRequest().body(new Message("Error : Ukuran file terlalu besar, maksimal 10 MB"));
+                }
+            }
+
+            Snack snackDetails = new Snack(name, price, null, null, seller, contact, location, rating, type, userId);
+            try {
+                Snack updatedSnack = snackService.updateSnack(id, snackDetails, file);
+                return updatedSnack != null ? ResponseEntity.ok(updatedSnack) : ResponseEntity.badRequest().body(new Message("Error : Something went wrong"));
+            } catch(IOException e) {
+                return ResponseEntity.badRequest().body(new Message("Error: "+ e.getMessage()));
+            }
     }
 
     @DeleteMapping("/{id}")
@@ -105,4 +146,5 @@ public class SnackController {
                 .header("Content-Type", contentType != null ? contentType : "application/octet-stream")
                 .body(image);
     }
+    
 }
