@@ -74,7 +74,7 @@ const LoginForm = () => {
           type="button"
           className="w-full border border-gray-800 text-gray-800 rounded-md py-2 hover:bg-gray-100 transition"
         >
-          Daftar
+          <a href='/register'>Daftar</a>
         </button>
       </div>
     </div>

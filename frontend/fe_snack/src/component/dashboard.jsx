@@ -30,9 +30,9 @@ function Dashboard() {
               <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
             </div>
           </div>
-          <button className="bg-[#E1E9DB] hover:bg-[#d4dece] rounded-full text-sm px-4 py-2">
+          <a href="/login" className="bg-[#E1E9DB] hover:bg-[#d4dece] rounded-full text-sm px-4 py-2">
             Masuk
-          </button>
+          </a>
         </div>
         
         {/* Navigation */}
@@ -58,6 +58,7 @@ function Dashboard() {
 
       <div className="mx-20">
         {/* Hero Section */}
+        <a href='/detailjajanan'>
         <section className="relative h-[400px] w-full rounded-lg mt-6">
           <img
             src={Risol}
@@ -74,6 +75,7 @@ function Dashboard() {
             </div>
           </div>
         </section>
+        </a>
 
         {/* Top Jajanan Section */}
         <section className="py-8">
