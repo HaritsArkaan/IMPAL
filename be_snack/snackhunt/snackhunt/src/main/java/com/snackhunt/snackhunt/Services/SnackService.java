@@ -77,12 +77,21 @@ public class SnackService {
         return snack;
     }
 
-    public Snack updateSnack(int id, Snack snackDetails){
+    public Snack updateSnack(int id, Snack snackDetails, MultipartFile file) throws IOException {
         return snackRepository.findById(id).map(snack-> {
+            // Delete old file if a new file is uploaded
+            if (file != null && !file.isEmpty()) {
+                deleteFile(snack.getImage());
+                try {
+                    String filename = saveFile(file);
+                    snack.setImage(filename);
+                    snack.setImage_URL("/api/snacks/images/" + filename);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
             snack.setName(snackDetails.getName());
             snack.setPrice(snackDetails.getPrice());
-            snack.setImage(snackDetails.getImage());
-            snack.setImage_URL(snackDetails.getImage_URL());
             snack.setSeller(snackDetails.getSeller());
             snack.setContact(snackDetails.getContact());
             snack.setLocation(snackDetails.getLocation());
