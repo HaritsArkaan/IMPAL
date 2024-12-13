@@ -1,5 +1,6 @@
 import React from "react";
 import { UserIcon, LockClosedIcon } from "@heroicons/react/24/solid";
+import { Link } from 'react-router-dom';
 
 const LoginForm = () => {
   return (
@@ -54,12 +55,14 @@ const LoginForm = () => {
           </div>
 
           {/* Tombol Masuk */}
-          <button
+          <a href='/dashboard'>
+          <div
             type="submit"
-            className="w-full bg-gray-800 text-white rounded-md py-2 hover:bg-gray-700 transition"
+            className="w-full bg-gray-800 text-white rounded-md py-2 hover:bg-gray-700 transition text-center items-center justify-center"
           >
             Masuk
-          </button>
+          </div>
+          </a>
         </form>
 
         {/* Garis Pemisah */}
@@ -70,12 +73,14 @@ const LoginForm = () => {
         </div>
 
         {/* Tombol Daftar */}
+        <Link to="/register">
         <button
           type="button"
           className="w-full border border-gray-800 text-gray-800 rounded-md py-2 hover:bg-gray-100 transition"
         >
           <a href='/register'>Daftar</a>
         </button>
+        </Link>
       </div>
     </div>
   );

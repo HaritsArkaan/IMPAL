@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Menu, Filter, PlusCircle, Heart, Check } from 'lucide-react';
+import { Search, House, Filter, PlusCircle, Heart, Check } from 'lucide-react';
 import { IconSalad, IconMilkshake, IconPepper, IconMeat, IconLollipop, IconLemon, IconUserCircle } from "@tabler/icons-react";
 
 const FilterButton = ({ icon: Icon, label, isSelected, onClick }) => (
@@ -51,18 +51,21 @@ function FilterPage() {
             </div>
           </div>
           <button 
+            
             className="text-black hover:text-gray-700 rounded-full"
             onClick={() => console.log('User profile clicked')}
           >
+            <Link to="/profile">
             <IconUserCircle size={40} stroke={1.5} />
+            </Link>
           </button>
         </div>
         
         {/* Navigation */}
         <nav className="flex items-center justify-center space-x-8 px-4 py-2">
-          <a href="/" className="flex items-center space-x-1">
-            <Menu className="h-4 w-4" />
-            <span className="text-sm">Menu</span>
+          <a href="/dashboard" className="flex items-center space-x-1">
+            <House className="h-4 w-4" />
+            <span className="text-sm">Home</span>
           </a>
           <Link to ="/filter" className="flex items-center space-x-1">
             <Filter className="h-4 w-4" />

@@ -1,16 +1,20 @@
-import React from 'react';
-import Logo from "../photo/logo.jpg"
-import Corndog from "../photo/corndog.jpg"
-import Risol from "../photo/risol.jpg"
-import Mie from "../photo/mie-rendang.jpg"
-import Kelapa from "../photo/es-kelapa.jpg"
+import React, { useState } from 'react';
+import Logo from "../photo/logo.jpg";
+import Corndog from "../photo/corndog.jpg";
+import Risol from "../photo/risol.jpg";
+import Mie from "../photo/mie-rendang.jpg";
+import Kelapa from "../photo/es-kelapa.jpg";
 import { Link } from 'react-router-dom';
-
 import { Search, Menu, Filter, PlusCircle, Heart, Star } from 'lucide-react';
 
-
 function Dashboard() {
-    return (
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  return (
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="sticky top-0 z-50 w-full bg-white">
@@ -30,18 +34,53 @@ function Dashboard() {
               <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
             </div>
           </div>
-          <a href="/login" className="bg-[#E1E9DB] hover:bg-[#d4dece] rounded-full text-sm px-4 py-2">
-            Masuk
-          </a>
+          <button className="bg-[#E1E9DB] hover:bg-[#d4dece] rounded-full text-sm px-4 py-2">
+            <Link to="/login">Masuk</Link>
+          </button>
         </div>
-        
+
         {/* Navigation */}
         <nav className="flex items-center justify-center space-x-8 px-4 py-2">
-          <a href="/" className="flex items-center space-x-1">
-            <Menu className="h-4 w-4" />
-            <span className="text-sm">Menu</span>
-          </a>
-          <Link to ="/filter" className="flex items-center space-x-1">
+
+          {/* Dropdown Button */}
+          <div className="relative">
+            <button
+              onClick={toggleDropdown}
+              className="flex items-center space-x-2 text-black-700 hover:text-gray-900 bg-white px-4 py-2 rounded-lg focus:outline-none"
+            >
+              <Menu className="h-4 w-4" /> {/* Ikon Menu */}
+              <span className='text-sm'>Menu</span> {/* Teks "Menu" */}
+            </button>
+
+            {/* Dropdown Menu */}
+            {isDropdownOpen && (
+              <div
+                id="dropdown"
+                className="absolute z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700"
+              >
+                <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
+                  <li>
+                    <a
+                      href="/review"
+                      className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                    >
+                      Reviewku
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#"
+                      className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                    >
+                      Jajanku
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <Link to="/filter" className="flex items-center space-x-1">
             <Filter className="h-4 w-4" />
             <span className="text-sm">Filter Jajanan</span>
           </Link>
@@ -58,7 +97,7 @@ function Dashboard() {
 
       <div className="mx-20">
         {/* Hero Section */}
-        <a href='/detailjajanan'>
+        <a href = '/detailjajanan'>
         <section className="relative h-[400px] w-full rounded-lg mt-6">
           <img
             src={Risol}

@@ -1,5 +1,6 @@
 import React from "react";
 import { UserIcon, LockClosedIcon } from "@heroicons/react/24/solid";
+import { Link } from 'react-router-dom';
 
 const RegisterForm = () => {
   return (
@@ -50,12 +51,14 @@ const RegisterForm = () => {
           </div>
 
           {/* Tombol Daftar */}
+          <Link to="/login">
           <button
             type="submit"
             className="w-full bg-black text-white rounded-md py-3 text-sm hover:bg-gray-800 transition"
           >
             Daftar
           </button>
+          </Link>
         </form>
 
         {/* Tulisan "atau masuk dengan" */}
