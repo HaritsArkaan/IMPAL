@@ -10,6 +10,7 @@ import { Route } from 'react-router-dom';
 import { BrowserRouter, Routes } from 'react-router-dom';
 import LoginForm from './component/login';
 import RegisterForm from './component/register';
+import Review from './component/Reviewku';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path="/profile" element={<Profile/>}/>
         <Route path="/login" element={<LoginForm/>}/>
         <Route path="/register" element={<RegisterForm/>}/>
+        <Route path="/review" element={<Review/>}/>
       </Routes>
     </BrowserRouter>
     
