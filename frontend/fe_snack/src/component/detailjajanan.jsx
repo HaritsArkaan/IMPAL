@@ -1,7 +1,9 @@
 import React from 'react'
 import Risol from "../photo/risol.jpg"
 import Logo from "../photo/logo.jpg"
-import { Search, Menu, Filter, PlusCircle, Heart } from 'lucide-react';
+import { Search, House, Filter, PlusCircle, Heart } from 'lucide-react';
+import { IconUserCircle } from "@tabler/icons-react";
+import { Link } from 'react-router-dom';
 
 export default function DetailJajanan() {
   return (
@@ -11,11 +13,11 @@ export default function DetailJajanan() {
       <header className="sticky top-0 z-50 w-full bg-white">
         <div className="flex h-16 items-center justify-between px-4">
           <img
-            src={Logo}
+            src="/logo.jpg"
             alt="Snack Hunt Logo"
-            className="w-[130px] h-[600px] object-contain"
+            className="w-[120px] h-[100px] object-contain"
           />
-          <div className="flex w-full max-w-md items-center px-4">
+          <div className="flex w-full max-w-md items-center justify-center">
             <div className="relative w-full">
               <input
                 type="text"
@@ -25,21 +27,27 @@ export default function DetailJajanan() {
               <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
             </div>
           </div>
-          <button className="bg-[#E1E9DB] hover:bg-[#d4dece] rounded-full text-sm px-4 py-2">
-            Masuk
+          <button 
+            
+            className="text-black hover:text-gray-700 rounded-full"
+            onClick={() => console.log('User profile clicked')}
+          >
+            <Link to="/profile">
+            <IconUserCircle size={40} stroke={1.5} />
+            </Link>
           </button>
         </div>
         
         {/* Navigation */}
         <nav className="flex items-center justify-center space-x-8 px-4 py-2">
-          <a href="/" className="flex items-center space-x-1">
-            <Menu className="h-4 w-4" />
-            <span className="text-sm">Menu</span>
+          <a href="/dashboard" className="flex items-center space-x-1">
+            <House className="h-4 w-4" />
+            <span className="text-sm">Home</span>
           </a>
-          <a href="/filter" className="flex items-center space-x-1">
+          <Link to ="/filter" className="flex items-center space-x-1">
             <Filter className="h-4 w-4" />
             <span className="text-sm">Filter Jajanan</span>
-          </a>
+          </Link>
           <a href="/add" className="flex items-center space-x-1">
             <PlusCircle className="h-4 w-4" />
             <span className="text-sm">Tambah Jajanan</span>

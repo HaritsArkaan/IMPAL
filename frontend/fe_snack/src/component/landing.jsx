@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export default function Landing({ onComplete }) {
+export default function Landing() {
   const [fadeOut, setFadeOut] = useState(false);
   const navigate = useNavigate();
 
@@ -9,13 +9,12 @@ export default function Landing({ onComplete }) {
     const timer = setTimeout(() => {
       setFadeOut(true);
       setTimeout(() => {
-        onComplete();
         navigate('/dashboard');
-      }, 1000);
-    }, 3000);
+      }, 1000); // Transition duration
+    }, 3000); // Display duration
 
     return () => clearTimeout(timer);
-  }, [navigate, onComplete]);
+  }, [navigate]);
 
   return (
     <div className={`landing-page ${fadeOut ? 'fade-out' : ''}`}>
