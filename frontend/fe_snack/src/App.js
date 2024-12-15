@@ -11,6 +11,7 @@ import { BrowserRouter, Routes } from 'react-router-dom';
 import LoginForm from './component/login';
 import RegisterForm from './component/register';
 import Review from './component/Reviewku';
+import Jajananku from './component/jajananku';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/login" element={<LoginForm/>}/>
         <Route path="/register" element={<RegisterForm/>}/>
         <Route path="/review" element={<Review/>}/>
+        <Route path="/jajananku" element={<Jajananku/>}/>
       </Routes>
     </BrowserRouter>
     
