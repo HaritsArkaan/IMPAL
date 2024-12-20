@@ -88,7 +88,7 @@ function Dashboard() {
             <PlusCircle className="h-4 w-4" />
             <span className="text-sm">Tambah Jajanan</span>
           </a>
-          <a href="/favorites" className="flex items-center space-x-1">
+          <a href="/favoritku" className="flex items-center space-x-1">
             <Heart className="h-4 w-4" />
             <span className="text-sm">Favoritku</span>
           </a>

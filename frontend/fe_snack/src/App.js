@@ -12,6 +12,7 @@ import LoginForm from './component/login';
 import RegisterForm from './component/register';
 import Review from './component/Reviewku';
 import Jajananku from './component/jajananku';
+import Favoritku from './component/favoritku';
 
 function App() {
   return (
@@ -26,7 +27,8 @@ function App() {
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegisterForm />} />
         <Route path="/review" element={<Review />} />
-        <Route path="/jajananku" element={<Jajananku />} />
+        <Route path="/jajananku" element={<Jajananku/>} />
+        <Route path="/favoritku" element={<Favoritku/>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
