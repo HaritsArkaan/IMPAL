@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface SnackRepository extends MongoRepository<Snack, Integer>{
     public List<Snack> findByType(String type);
+    public List<Snack> findByUserId(int userId);
 }

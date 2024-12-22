@@ -28,6 +28,14 @@ public class ReviewService {
         return reviewRepository.findById(id);
     }
 
+    public List<Review> getReviewsByUserId(int userId){
+        return reviewRepository.findByUserId(userId);
+    }
+
+    public List<Review> getReviewsBySnackId(int snackId){
+        return reviewRepository.findBySnackId(snackId);
+    }
+
     public Review updateReview(int id, Review reviewDetails){
         return reviewRepository.findById(id).map(review -> {
             review.setContent(reviewDetails.getContent());

@@ -77,6 +77,10 @@ public class SnackService {
         return snack;
     }
 
+    public List<Snack> getSnacksByUserId(int userId) {
+        return snackRepository.findByUserId(userId);
+    }
+
     public Snack updateSnack(int id, Snack snackDetails, MultipartFile file) throws IOException {
         return snackRepository.findById(id).map(snack-> {
             // Delete old file if a new file is uploaded
