@@ -6,9 +6,12 @@ import axios from 'axios';
 import { Search, House, Filter, PlusCircle, Heart } from 'lucide-react';
 import { IconUserCircle } from "@tabler/icons-react";
 import { Link } from 'react-router-dom';
+import PopUpReview from './popUpReview';
 
 export default function DetailJajanan() {
   const [review, setReview] = useState([]);
+  const [popUp, setPopUp] = useState(false);
+  const tooglePopUp = () => setPopUp(!popUp);
 
   const location = useLocation();
   const { item } = location.state;
@@ -153,9 +156,13 @@ export default function DetailJajanan() {
                 {item.contact}
               </p>
             </div>
-            <button className="w-full mt-6 bg-[#70AE6E] text-lg text-white py-2 px-4 rounded-lg hover:bg-transparent hover:text-[#70AE6E] border hover:border-[#70AE6E] transition duration-300">
+            <button
+              onClick={tooglePopUp} 
+              className="w-full mt-6 bg-[#70AE6E] text-lg text-white py-2 px-4 rounded-lg hover:bg-transparent hover:text-[#70AE6E] border hover:border-[#70AE6E] transition duration-300"
+            >
             Tambahkan Review
           </button>
+          <PopUpReview show={popUp} onClose={tooglePopUp}/>
           </div>
         </div>
 
