@@ -4,7 +4,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.Transient;
-
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Document(collection = "users")
 public class User {
@@ -13,24 +13,20 @@ public class User {
     public static final String SEQUENCE_NAME = "user_sequence";
     
     @Id
-    private int id;
-    private String username;
-    private String password;
-    private String email;
-    private String pfp;
-    private String image_URL;
+    protected int id;
+    protected String username;
+    protected String password;
+    protected Role role;
 
 
     public User(){}
 
 
-    public User(int id, String username, String password, String email, String pfp, String image_URL) {
+    public User(int id, String username, String password, Role role) {
         this.id = id;
         this.username = username;
         this.password = password;
-        this.email = email;
-        this.pfp = pfp;
-        this.image_URL = image_URL;
+        this.role = role;
     }
 
     // Getter dan Setter
@@ -59,28 +55,13 @@ public class User {
     }
 
 
-    public String getEmail() {
-        return this.email;
+    public Role getRole() {
+        return this.role;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setRole(Role role) {
+        this.role = role;
     }
 
-    public String getPfp() {
-        return this.pfp;
-    }
-
-    public void setPfp(String pfp) {
-        this.pfp = pfp;
-    }
-
-    public String getImage_URL() {
-        return this.image_URL;
-    }
-
-    public void setImage_URL(String image_URL) {
-        this.image_URL = image_URL;
-    }
 
 }

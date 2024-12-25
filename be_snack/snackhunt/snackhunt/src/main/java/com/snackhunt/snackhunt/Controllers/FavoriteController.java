@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 
@@ -18,7 +17,7 @@ public class FavoriteController {
     @Autowired
     private FavoriteService favoriteService;
 
-    @PatchMapping
+    @PostMapping
     public Favorite createFavorite(@RequestBody Favorite favorite) {
         return favoriteService.createFavorite(favorite);
     }

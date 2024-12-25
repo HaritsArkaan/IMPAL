@@ -7,16 +7,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import com.snackhunt.snackhunt.Services.*;
 
 import io.swagger.v3.oas.annotations.Operation;
 
 import com.snackhunt.snackhunt.Models.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -71,7 +67,7 @@ public class SnackController {
             return ResponseEntity.ok(createdSnack);
     }
     @Operation(summary = "Get all snacks", description = "Get all snacks")
-    @GetMapping
+    @GetMapping("/get")
     public List<Snack> getAllSnacks() {
         return snackService.getAllSnacks();
     }
@@ -82,7 +78,7 @@ public class SnackController {
     }
 
     @Operation(summary = "Get snack by id", description = "Get Get snack by id")
-    @GetMapping("/{id}")
+    @GetMapping("/get/{id}")
     public ResponseEntity<Snack> getSnackById(@PathVariable int id) {
         return snackService.getSnackById(id)
         .map(ResponseEntity::ok)

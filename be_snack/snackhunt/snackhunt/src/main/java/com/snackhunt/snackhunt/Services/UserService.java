@@ -31,10 +31,7 @@ public class UserService {
     public User updateUser(int id, User userDetails) {
         return userRepository.findById(id).map(user -> {
             user.setUsername(userDetails.getUsername());
-            user.setEmail(userDetails.getEmail());
             user.setPassword(userDetails.getPassword());
-            user.setPfp(userDetails.getPfp());
-            user.setImage_URL(userDetails.getImage_URL());
             return userRepository.save(user);
         }).orElse(null);
     }
