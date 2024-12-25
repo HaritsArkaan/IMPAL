@@ -66,5 +66,11 @@ public class ReviewController {
         return reviewService.deleteReview(id) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 
+    @Operation(summary = "Get review statistics by snack id", description = "Get review count and average rating for snack id")
+    @GetMapping("/statistics/{id}")
+    public ResponseEntity<ReviewStatistics> getReviewStatisticsBySnackId(@PathVariable int id) {
+        ReviewStatistics statistics = reviewService.getReviewStatisticsBySnackId(id);
+        return ResponseEntity.ok(statistics);
+    }
     
 }

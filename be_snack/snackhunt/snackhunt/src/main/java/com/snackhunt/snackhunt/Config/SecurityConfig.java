@@ -33,6 +33,7 @@ public class SecurityConfig {
             "/api/snacks/images/**",
             "/reviews/snack/**",
             "/reviews",
+            "/reviews/statistics/**",
             "/v2/api-docs",
             "/v3/api-docs",
             "/v3/api-docs/**",

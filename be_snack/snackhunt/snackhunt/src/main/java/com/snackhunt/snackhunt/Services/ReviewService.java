@@ -5,6 +5,7 @@ import com.snackhunt.snackhunt.Repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ReviewService {
@@ -52,6 +53,14 @@ public class ReviewService {
             return true;
         }
         return false;
+    }
+
+    public ReviewStatistics getReviewStatisticsBySnackId(int snackId) {
+        List<Review> reviews = reviewRepository.findBySnackId(snackId);
+        double averageRating = reviews.stream()
+                                      .collect(Collectors.averagingDouble(Review::getRating));
+        int reviewCount = reviews.size();
+        return new ReviewStatistics(reviewCount, averageRating);
     }
 }
 
