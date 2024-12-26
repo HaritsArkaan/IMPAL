@@ -1,8 +1,43 @@
-import React from "react";
+import React, { useState } from "react";
+import axios from "axios";
 import { UserIcon, LockClosedIcon } from "@heroicons/react/24/solid";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import Cookies from "js-cookie";
 
 const LoginForm = () => {
+  const [input, setInput] = useState({
+    username: "",
+    password: "",
+});
+
+const handleInput = (e) => {
+    setInput({
+        ...input,
+        [e.target.name]: e.target.value
+    });
+};
+
+const handleSubmit = (e) => {
+    e.preventDefault();
+    const { username, password } = input;
+    console.log(input);
+    // API call to register user
+    axios
+        .post("http://localhost:8080/api/auth/login", { username, password })
+        .then((response) => {
+            console.log(response.data);
+            alert("Login successfully");
+            Cookies.set("token", response.data.token, { expires: 1 });
+            navigate("/dashboard");
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+};
+
+const navigate = useNavigate();
+
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-[#FFC3BE] via-[#FFEBD4] to-[#BED1BD] font-poppins">
       <div className="bg-white/40 backdrop-blur-[40px] rounded-3xl shadow-lg p-10 w-[28rem] h-auto">
@@ -22,6 +57,8 @@ const LoginForm = () => {
               <input
                 type="text"
                 id="username"
+                name="username"
+                onChange={handleInput}
                 placeholder="Nama Pengguna"
                 className="w-full bg-[#D1C5C5] rounded-md pl-10 py-2 text-gray-800 focus:outline-none focus:ring focus:ring-pink-300"
               />
@@ -43,6 +80,8 @@ const LoginForm = () => {
               <input
                 type="password"
                 id="password"
+                name="password"
+                onChange={handleInput}
                 placeholder="Kata Sandi"
                 className="w-full bg-[#D1C5C5] rounded-md pl-10 py-2 text-gray-800 focus:outline-none focus:ring focus:ring-pink-300"
               />
@@ -55,14 +94,13 @@ const LoginForm = () => {
           </div>
 
           {/* Tombol Masuk */}
-          <a href='/dashboard'>
-          <div
+          <button
             type="submit"
+            onClick={handleSubmit}
             className="w-full bg-gray-800 text-white rounded-md py-2 hover:bg-gray-700 transition text-center items-center justify-center"
           >
             Masuk
-          </div>
-          </a>
+          </button>
         </form>
 
         {/* Garis Pemisah */}

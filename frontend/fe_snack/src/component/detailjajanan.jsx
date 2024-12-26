@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import Risol from "../photo/risol.jpg";
 import Logo from "../photo/logo.jpg";
 import axios from 'axios';
-import { Search, House, Filter, PlusCircle, Heart } from 'lucide-react';
+import { Search, HomeIcon as House, Filter, PlusCircle, Heart } from 'lucide-react';
 import { IconUserCircle } from "@tabler/icons-react";
 import { Link } from 'react-router-dom';
 import PopUpReview from './popUpReview';
@@ -11,7 +11,10 @@ import PopUpReview from './popUpReview';
 export default function DetailJajanan() {
   const [review, setReview] = useState([]);
   const [popUp, setPopUp] = useState(false);
-  const tooglePopUp = () => setPopUp(!popUp);
+  const tooglePopUp = () => {
+    console.log('Toggling popup, current snackId:', item.id);
+    setPopUp(!popUp);
+  };
 
   const location = useLocation();
   const { item } = location.state;
@@ -27,6 +30,12 @@ export default function DetailJajanan() {
         console.error(error);
       });
   }, [item.id]);
+
+  useEffect(() => {
+    if (popUp) {
+      console.log('Opening popup with snackId:', item.id);
+    }
+  }, [popUp, item.id]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -162,7 +171,7 @@ export default function DetailJajanan() {
             >
             Tambahkan Review
           </button>
-          <PopUpReview show={popUp} onClose={tooglePopUp}/>
+          <PopUpReview show={popUp} onClose={tooglePopUp} snackId={item.id || 0}/>
           </div>
         </div>
 
@@ -203,3 +212,4 @@ export default function DetailJajanan() {
     </div>
   );
 }
+

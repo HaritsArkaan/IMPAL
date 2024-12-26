@@ -15,7 +15,7 @@ function Dashboard() {
   };
 
   useEffect(() => {
-    axios.get('http://localhost:8080/api/snacks')
+    axios.get('http://localhost:8080/api/snacks/get')
       .then(response => {
         console.log(response.data);
         if (response.data.length > 0) {
@@ -54,9 +54,11 @@ function Dashboard() {
               <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
             </div>
           </div>
-          <button className="bg-[#E1E9DB] hover:bg-[#d4dece] rounded-full text-sm px-4 py-2">
-            <Link to="/login">Masuk</Link>
-          </button>
+          <div className="bg-[#E1E9DB] hover:bg-[#d4dece] rounded-full text-sm px-4 py-2">
+            <Link to="/login" className="block w-full h-full text-center">
+              Masuk
+            </Link>
+          </div>
         </div>
 
         {/* Navigation */}

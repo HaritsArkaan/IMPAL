@@ -7,7 +7,7 @@ const RegisterForm = () => {
   const [input, setInput] = useState({
       username: "",
       password: "",
-      email: ""
+      role: "USER"
   });
 
   const handleInput = (e) => {
@@ -19,11 +19,11 @@ const RegisterForm = () => {
 
   const handleSubmit = (e) => {
       e.preventDefault();
-      const { username, password, email } = input;
+      const { username, password, role } = input;
       console.log(input);
       // API call to register user
       axios
-          .post("http://localhost:8080/users", { username, password, email })
+          .post("http://localhost:8080/api/auth/register", { username, password, role })
           .then((response) => {
               console.log(response.data);
               alert("User created successfully");
@@ -31,6 +31,7 @@ const RegisterForm = () => {
           })
           .catch((error) => {
               console.error(error);
+              alert(error.response.data);
           });
   };
 
@@ -55,23 +56,6 @@ const RegisterForm = () => {
                 onChange={handleInput}
                 value={input.username}
                 placeholder="Nama Pengguna"
-                className="w-full bg-[#D1C5C5] text-sm rounded-md pl-10 py-3 text-gray-800 focus:outline-none focus:ring focus:ring-pink-300"
-              />
-            </div>
-          </div>
-
-          {/* Email Pengguna */}
-          <div className="mb-6">
-            <div className="relative">
-              <span className="absolute inset-y-0 left-3 flex items-center">
-                <EnvelopeIcon className="h-5 w-5 text-gray-500" />
-              </span>
-              <input
-                type="text"
-                name="email"
-                onChange={handleInput}
-                value={input.email}
-                placeholder="Email Pengguna"
                 className="w-full bg-[#D1C5C5] text-sm rounded-md pl-10 py-3 text-gray-800 focus:outline-none focus:ring focus:ring-pink-300"
               />
             </div>
