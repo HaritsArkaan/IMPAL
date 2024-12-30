@@ -7,6 +7,7 @@ import { Search, HomeIcon as House, Filter, PlusCircle, Heart } from 'lucide-rea
 import { IconUserCircle } from "@tabler/icons-react";
 import { Link } from 'react-router-dom';
 import PopUpReview from './popUpReview';
+import Header from './Header';
 
 export default function DetailJajanan() {
   const [review, setReview] = useState([]);
@@ -39,56 +40,7 @@ export default function DetailJajanan() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header Navigation */}
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full bg-white">
-        <div className="flex h-16 items-center justify-between px-4">
-          <img
-            src="/logo.jpg"
-            alt="Snack Hunt Logo"
-            className="w-[120px] h-[100px] object-contain"
-          />
-          <div className="flex w-full max-w-md items-center justify-center">
-            <div className="relative w-full">
-              <input
-                type="text"
-                placeholder="mau jajan apa hari ini?"
-                className="w-full bg-[#E1E9DB] pr-8 pl-3 py-2 text-center rounded-full"
-              />
-              <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
-            </div>
-          </div>
-          <button 
-            
-            className="text-black hover:text-gray-700 rounded-full"
-            onClick={() => console.log('User profile clicked')}
-          >
-            <Link to="/profile">
-            <IconUserCircle size={40} stroke={1.5} />
-            </Link>
-          </button>
-        </div>
-        
-        {/* Navigation */}
-        <nav className="flex items-center justify-center space-x-8 px-4 py-2">
-          <a href="/dashboard" className="flex items-center space-x-1">
-            <House className="h-4 w-4" />
-            <span className="text-sm">Home</span>
-          </a>
-          <Link to ="/filter" className="flex items-center space-x-1">
-            <Filter className="h-4 w-4" />
-            <span className="text-sm">Filter Jajanan</span>
-          </Link>
-          <a href="/add" className="flex items-center space-x-1">
-            <PlusCircle className="h-4 w-4" />
-            <span className="text-sm">Tambah Jajanan</span>
-          </a>
-          <a href="/favorites" className="flex items-center space-x-1">
-            <Heart className="h-4 w-4" />
-            <span className="text-sm">Favoritku</span>
-          </a>
-        </nav>
-      </header>
+      <Header />
 
       <div className="max-w-5xl mx-auto p-4">
         {/* Food Detail Section */}

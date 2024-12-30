@@ -3,6 +3,7 @@ import Logo from "../photo/logo.jpg";
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Search, Menu, Filter, PlusCircle, Heart, Star } from 'lucide-react';
+import Header from './Header';
 
 function Dashboard() {
   const [data, setData] = useState([]);
@@ -36,87 +37,7 @@ function Dashboard() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full bg-white">
-        <div className="flex h-16 items-center justify-between px-4">
-          <img
-            src={Logo}
-            alt="Snack Hunt Logo"
-            className="w-[130px] h-[600px] object-contain"
-          />
-          <div className="flex w-full max-w-md items-center px-4">
-            <div className="relative w-full">
-              <input
-                type="text"
-                placeholder="mau jajan apa hari ini?"
-                className="w-full bg-[#E1E9DB] pr-8 pl-3 py-2 text-center rounded-full"
-              />
-              <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
-            </div>
-          </div>
-          <div className="bg-[#E1E9DB] hover:bg-[#d4dece] rounded-full text-sm px-4 py-2">
-            <Link to="/login" className="block w-full h-full text-center">
-              Masuk
-            </Link>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex items-center justify-center space-x-8 px-4 py-2">
-
-          {/* Dropdown Button */}
-          <div className="relative">
-            <button
-              onClick={toggleDropdown}
-              className="flex items-center space-x-2 text-black-700 hover:text-gray-900 bg-white px-4 py-2 rounded-lg focus:outline-none"
-            >
-              <Menu className="h-4 w-4" /> {/* Ikon Menu */}
-              <span className='text-sm'>Menu</span> {/* Teks "Menu" */}
-            </button>
-
-            {/* Dropdown Menu */}
-            {isDropdownOpen && (
-              <div
-                id="dropdown"
-                className="absolute z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700"
-              >
-                <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
-                  <li>
-                    <a
-                      href="/review"
-                      className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                    >
-                      Reviewku
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="/jajananku"
-                      className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                    >
-                      Jajanku
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            )}
-          </div>
-
-          <Link to="/filter" className="flex items-center space-x-1">
-            <Filter className="h-4 w-4" />
-            <span className="text-sm">Filter Jajanan</span>
-          </Link>
-          <a href="/add" className="flex items-center space-x-1">
-            <PlusCircle className="h-4 w-4" />
-            <span className="text-sm">Tambah Jajanan</span>
-          </a>
-          <a href="/favoritku" className="flex items-center space-x-1">
-            <Heart className="h-4 w-4" />
-            <span className="text-sm">Favoritku</span>
-          </a>
-        </nav>
-      </header>
-
+      <Header />
       <div className="mx-20">
         {/* Hero Section */}
         <section className="relative h-[400px] w-full rounded-lg mt-6" onClick={() => handleButtonClick(banner)}>

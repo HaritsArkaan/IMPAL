@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { Search, House, Filter, PlusCircle, Heart, Star, Upload } from 'lucide-react';
 import { IconUserCircle } from "@tabler/icons-react";
 import Logo from "../photo/logo.jpg";
+import Header from './Header';
 
 function TambahJajanan() {
   const [selectedPrice, setSelectedPrice] = useState("");
@@ -19,55 +20,8 @@ function TambahJajanan() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full bg-white">
-              <div className="flex h-16 items-center justify-between px-4">
-                <img
-                  src="/logo.jpg"
-                  alt="Snack Hunt Logo"
-                  className="w-[120px] h-[100px] object-contain"
-                />
-                <div className="flex w-full max-w-md items-center justify-center">
-                  <div className="relative w-full">
-                    <input
-                      type="text"
-                      placeholder="mau jajan apa hari ini?"
-                      className="w-full bg-[#E1E9DB] pr-8 pl-3 py-2 text-center rounded-full"
-                    />
-                    <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
-                  </div>
-                </div>
-                <button 
-                  
-                  className="text-black hover:text-gray-700 rounded-full"
-                  onClick={() => console.log('User profile clicked')}
-                >
-                  <Link to="/profile">
-                  <IconUserCircle size={40} stroke={1.5} />
-                  </Link>
-                </button>
-              </div>
-              
-              {/* Navigation */}
-              <nav className="flex items-center justify-center space-x-8 px-4 py-2">
-                <a href="/dashboard" className="flex items-center space-x-1">
-                  <House className="h-4 w-4" />
-                  <span className="text-sm">Home</span>
-                </a>
-                <Link to ="/filter" className="flex items-center space-x-1">
-                  <Filter className="h-4 w-4" />
-                  <span className="text-sm">Filter Jajanan</span>
-                </Link>
-                <a href="/add" className="flex items-center space-x-1">
-                  <PlusCircle className="h-4 w-4" />
-                  <span className="text-sm">Tambah Jajanan</span>
-                </a>
-                <a href="/favoritku" className="flex items-center space-x-1">
-                  <Heart className="h-4 w-4" />
-                  <span className="text-sm">Favoritku</span>
-                </a>
-              </nav>
-            </header>
+      <Header />
+      
       <div className="max-w-2xl mx-auto p-4">
       {/* Main Form */}
       <main>
