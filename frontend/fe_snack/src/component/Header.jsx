@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link , useNavigate} from 'react-router-dom';
 import { Search, Menu, Filter, PlusCircle, Heart, UserCircle } from 'lucide-react';
 import Cookies from 'js-cookie';
 import { IconUserCircle } from "@tabler/icons-react";
@@ -7,6 +7,8 @@ import { IconUserCircle } from "@tabler/icons-react";
 const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
   
   // Check for token on component mount and when token changes
   const [isLoggedIn, setIsLoggedIn] = useState(!!Cookies.get('token'));
@@ -36,8 +38,13 @@ const Header = () => {
   const handleLogout = () => {
     Cookies.remove('token');
     setIsLoggedIn(false);
-    setIsDropdownOpen(false); // Close the dropdown menu
-    window.location.href = '/dashboard'; // Redirect to dashboard instead of login
+    setIsDropdownOpen(false);
+    window.location.href = '/dashboard';
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    navigate(`/dashboard?search=${encodeURIComponent(searchQuery)}`);
   };
 
   return (
@@ -48,19 +55,25 @@ const Header = () => {
             <img
               src="/logo.jpg"
               alt="Snack Hunt Logo"
-              className="w-[120px] h-[70px] object-contain"
+              className="w-[120px] h-[60px] object-contain"
             />
           </Link>
           
           <div className="flex-1 max-w-md mx-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="mau jajan apa hari ini?"
-                className="w-full bg-[#E1E9DB] pr-8 pl-3 py-2 text-center rounded-full"
-              />
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            </div>
+            <form onSubmit={handleSearch}>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="mau jajan apa hari ini?"
+                  className="w-full bg-[#E1E9DB] pr-8 pl-3 py-2 text-center rounded-full"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <Search className="h-4 w-4 text-gray-400" />
+                </button>
+              </div>
+            </form>
           </div>
           
           {/* Login/Profile Section */}
@@ -71,7 +84,7 @@ const Header = () => {
                   onClick={toggleDropdown}
                   className="text-black hover:text-gray-700 rounded-full p-1"
                 >
-                  <IconUserCircle size={50} stroke={1.5} />
+                  <IconUserCircle size={55} stroke={1.5} />
                 </button>
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
