@@ -3,7 +3,7 @@ import { IconEdit, IconTrash, IconUserCircle, IconStar } from "@tabler/icons-rea
 import { Link } from 'react-router-dom';
 import axios from "axios";
 import Cookies from 'js-cookie';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import Header from './Header';
 
 function App() {
@@ -39,7 +39,23 @@ function App() {
 
     fetchSnacksAndStats();
   }, [userId]);
-  
+
+  const handleDelete = async (snackId) => {
+    try {
+      await axios.delete(`${baseURL}/api/snacks/${snackId}`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("token")}`
+        }
+      });
+      // Remove the deleted snack from the state
+      setData((prevData) => prevData.filter((item) => item.id !== snackId));
+      alert("Snack deleted successfully");
+    } catch (error) {
+      console.error("Error deleting snack:", error);
+      alert("Failed to delete snack");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -66,7 +82,9 @@ function App() {
             </div>
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-medium">{item.name}</h2>
-              <IconTrash className="w-6 h-6" />
+              <button onClick={() => handleDelete(item.id)} className="text-red-500">
+                <IconTrash className="w-6 h-6" />
+              </button>
             </div>
             <div className="flex items-center gap-1">
               <IconStar className="w-5 h-5 fill-[#FFDE32] text-[#FFDE32]" />

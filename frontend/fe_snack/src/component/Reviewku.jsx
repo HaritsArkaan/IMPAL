@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";import { Link, useLocation } from 'react-router-dom';
-import { IconEdit, IconTrash, IconUserCircle, IconStar } from "@tabler/icons-react";
+import React, { useEffect, useState } from "react";
+import { IconEdit, IconTrash, IconStar } from "@tabler/icons-react";
 import axios from "axios";
 import Cookies from 'js-cookie';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import EditPopup from './editPopup'; // Pastikan komponen ini diimport dengan benar
 import Header from './Header';
+import Swal from "sweetalert2";
 
 function App() {
   const [data, setData] = useState([]);
@@ -19,20 +20,74 @@ function App() {
     setPopUpEdit(!popUpEdit);
   };
 
+  const handleDelete = async (reviewId) => {
+    const swalWithBootstrapButtons = Swal.mixin({
+      customClass: {
+        confirmButton: "btn btn-success",
+        cancelButton: "btn btn-danger"
+      },
+      buttonsStyling: false
+    });
+
+    // Tampilkan SweetAlert untuk konfirmasi penghapusan
+    const result = await swalWithBootstrapButtons.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "No, cancel!",
+      reverseButtons: true
+    });
+
+    if (result.isConfirmed) {
+      try {
+        // Mengirim request untuk menghapus review berdasarkan reviewId
+        await axios.delete(`${baseURL}/reviews/${reviewId}`, {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("token")}`,
+          },
+        });
+
+        // Menghapus review yang sudah dihapus dari state
+        setData((prevData) => prevData.filter((item) => item.id !== reviewId));
+
+        swalWithBootstrapButtons.fire({
+          title: "Deleted!",
+          text: "Your review has been deleted.",
+          icon: "success"
+        });
+      } catch (error) {
+        console.error("Error deleting review:", error);
+        swalWithBootstrapButtons.fire({
+          title: "Failed to delete!",
+          text: "There was an issue deleting the review.",
+          icon: "error"
+        });
+      }
+    } else if (result.dismiss === Swal.DismissReason.cancel) {
+      swalWithBootstrapButtons.fire({
+        title: "Cancelled",
+        text: "Your review is safe :)",
+        icon: "error"
+      });
+    }
+  };
+
   useEffect(() => {
     const fetchReviewsAndStats = async () => {
       try {
         const reviewsResponse = await axios.get(`${baseURL}/reviews/user/${userId}`, {
           headers: {
-            Authorization: `Bearer ${Cookies.get("token")}`
-          }
+            Authorization: `Bearer ${Cookies.get("token")}`,
+          },
         });
         const reviews = reviewsResponse.data;
 
-        const snacksPromises = reviews.map(review =>
+        const snacksPromises = reviews.map((review) =>
           axios.get(`${baseURL}/api/snacks/get/${review.snackId}`)
         );
-        const statsPromises = reviews.map(review =>
+        const statsPromises = reviews.map((review) =>
           axios.get(`${baseURL}/reviews/statistics/${review.snackId}`)
         );
 
@@ -42,7 +97,7 @@ function App() {
         const combinedData = reviews.map((review, index) => ({
           ...review,
           snack: snacksResponses[index].data,
-          stats: statsResponses[index].data
+          stats: statsResponses[index].data,
         }));
 
         setData(combinedData);
@@ -53,7 +108,7 @@ function App() {
 
     fetchReviewsAndStats();
   }, [userId]);
-  
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -63,33 +118,37 @@ function App() {
       </h1>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-8 max-w-[900px] mx-auto">
-        {data.length > 0 && data.map((item) => (
-          <div key={item.id} className="w-[250px] mx-auto">
-            <div className="relative mb-4">
-              <img
-                src={`${baseURL}${item.snack.image_URL}`}
-                alt={item.snack.name}
-                className="w-full h-[300px] object-cover rounded-[15px]"
-              />
-              <button 
-                onClick={() => togglePopUpEdit(item)}
-                className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-[#70AE6E] text-white px-4 py-1 rounded-[8px] flex items-center gap-1 text-sm font-medium">
-                <IconEdit className="w-4 h-4" />
-                Edit Review
-              </button>
+        {data.length > 0 &&
+          data.map((item) => (
+            <div key={item.id} className="w-[250px] mx-auto">
+              <div className="relative mb-4">
+                <img
+                  src={`${baseURL}${item.snack.image_URL}`}
+                  alt={item.snack.name}
+                  className="w-full h-[300px] object-cover rounded-[15px]"
+                />
+                <button
+                  onClick={() => togglePopUpEdit(item)}
+                  className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-[#70AE6E] text-white px-4 py-1 rounded-[8px] flex items-center gap-1 text-sm font-medium"
+                >
+                  <IconEdit className="w-4 h-4" />
+                  Edit Review
+                </button>
+              </div>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-medium">{item.snack.name}</h2>
+                <button onClick={() => handleDelete(item.id)} className="text-red-500">
+                  <IconTrash className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="flex items-center gap-1">
+                <IconStar className="w-5 h-5 fill-[#FFDE32] text-[#FFDE32]" />
+                <span className="text-sm text-[#515151] font-light">
+                  {item.stats.averageRating.toFixed(1)} ({item.stats.reviewCount})
+                </span>
+              </div>
             </div>
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-medium">{item.snack.name}</h2>
-              <IconTrash className="w-6 h-6" />
-            </div>
-            <div className="flex items-center gap-1">
-              <IconStar className="w-5 h-5 fill-[#FFDE32] text-[#FFDE32]" />
-              <span className="text-sm text-[#515151] font-light">
-                {item.stats.averageRating.toFixed(1)} ({item.stats.reviewCount})
-              </span>
-            </div>
-          </div>
-        ))}
+          ))}
       </div>
 
       {popUpEdit && selectedReview && (
