@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Heart, Star } from 'lucide-react';
 import Header from './Header';
@@ -9,6 +9,7 @@ function Dashboard() {
   const [banner, setBanner] = useState(null);
   const [filteredData, setFilteredData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [reviewsData, setReviewsData] = useState({}); // Menyimpan data review untuk setiap jajanan
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -20,6 +21,20 @@ function Dashboard() {
           setAllData(response.data);
           setBanner(response.data[0]); // Always keep first item as banner
           setFilteredData(response.data); // Initially show all items including banner
+          
+          // Ambil data review untuk setiap jajanan
+          response.data.forEach(item => {
+            axios.get(`http://localhost:8080/reviews/statistics/${item.id}`)
+              .then(reviewResponse => {
+                setReviewsData(prev => ({
+                  ...prev,
+                  [item.id]: reviewResponse.data
+                }));
+              })
+              .catch(error => {
+                console.error(`Error fetching reviews for ${item.name}:`, error);
+              });
+          });
         }
       })
       .catch(error => {
@@ -53,6 +68,14 @@ function Dashboard() {
 
   const handleButtonClick = (item) => {
     navigate('/detailjajanan', { state: { item } });
+  };
+
+  // Memperbaiki fungsi formatRating untuk menangani nilai rating yang null atau undefined
+  const formatRating = (rating) => {
+    if (rating === null || rating === undefined) {
+      return "0.0"; // Default ke rating 0.0 jika tidak ada rating
+    }
+    return rating.toFixed(1); // Format dengan 1 angka di belakang koma
   };
 
   if (isLoading) {
@@ -114,7 +137,10 @@ function Dashboard() {
                     <h3 className="font-semibold">{item.name}</h3>
                     <div className="flex items-center gap-1">
                       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm">{item.rating} (25)</span>
+                      {/* Menampilkan rating dan jumlah review dengan format angka satu desimal */}
+                      <span className="text-sm">
+                        {formatRating(reviewsData[item.id]?.averageRating)} ({reviewsData[item.id]?.reviewCount ?? 0})
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -130,4 +156,3 @@ function Dashboard() {
 }
 
 export default Dashboard;
-

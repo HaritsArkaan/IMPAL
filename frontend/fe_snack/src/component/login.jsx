@@ -3,40 +3,75 @@ import axios from "axios";
 import { UserIcon, LockClosedIcon } from "@heroicons/react/24/solid";
 import { Link, useNavigate } from 'react-router-dom';
 import Cookies from "js-cookie";
+import Swal from "sweetalert2";  // Import SweetAlert
 
 const LoginForm = () => {
   const [input, setInput] = useState({
     username: "",
     password: "",
-});
+  });
 
-const handleInput = (e) => {
+  const handleInput = (e) => {
     setInput({
-        ...input,
-        [e.target.name]: e.target.value
+      ...input,
+      [e.target.name]: e.target.value,
     });
-};
+  };
 
-const handleSubmit = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     const { username, password } = input;
     console.log(input);
-    // API call to register user
+    // API call to login user
     axios
-        .post("http://localhost:8080/api/auth/login", { username, password })
-        .then((response) => {
-            console.log(response.data);
-            alert("Login successfully");
-            Cookies.set("token", response.data.token, { expires: 1 });
-            navigate("/dashboard");
-        })
-        .catch((error) => {
-            console.error(error);
+      .post("http://localhost:8080/api/auth/login", { username, password })
+      .then((response) => {
+        console.log(response.data);
+        // Set token in cookies
+        Cookies.set("token", response.data.token, { expires: 1 });
+        
+        // Show Toast notification for successful login
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+          }
         });
-};
+        Toast.fire({
+          icon: "success",
+          title: "Signed in successfully"
+        });
 
-const navigate = useNavigate();
+        // Redirect to dashboard
+        navigate("/dashboard");
+      })
+      .catch((error) => {
+        console.error(error);
+        // Show Toast notification for failed login
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+          }
+        });
+        Toast.fire({
+          icon: "error",
+          title: "Login failed. Please try again."
+        });
+      });
+  };
 
+  const navigate = useNavigate();
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-[#FFC3BE] via-[#FFEBD4] to-[#BED1BD] font-poppins">
@@ -112,12 +147,12 @@ const navigate = useNavigate();
 
         {/* Tombol Daftar */}
         <Link to="/register">
-        <button
-          type="button"
-          className="w-full border border-gray-800 text-gray-800 rounded-md py-2 hover:bg-gray-100 transition"
-        >
-          <a href='/register'>Daftar</a>
-        </button>
+          <button
+            type="button"
+            className="w-full border border-gray-800 text-gray-800 rounded-md py-2 hover:bg-gray-100 transition"
+          >
+            Daftar
+          </button>
         </Link>
       </div>
     </div>

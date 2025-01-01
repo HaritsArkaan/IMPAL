@@ -2,42 +2,75 @@ import React, { useEffect, useState } from "react";
 import { UserIcon, LockClosedIcon, EnvelopeIcon } from "@heroicons/react/24/solid";
 import { Link, useNavigate } from 'react-router-dom';
 import axios from "axios";
+import Swal from "sweetalert2"; // Import SweetAlert
 
 const RegisterForm = () => {
   const [input, setInput] = useState({
-      username: "",
-      password: "",
-      role: "USER"
+    username: "",
+    password: "",
+    role: "USER"
   });
 
   const handleInput = (e) => {
-      setInput({
-          ...input,
-          [e.target.name]: e.target.value
-      });
+    setInput({
+      ...input,
+      [e.target.name]: e.target.value
+    });
   };
 
   const handleSubmit = (e) => {
-      e.preventDefault();
-      const { username, password, role } = input;
-      console.log(input);
-      // API call to register user
-      axios
-          .post("http://localhost:8080/api/auth/register", { username, password, role })
-          .then((response) => {
-              console.log(response.data);
-              alert("User created successfully");
-              navigate("/login");
-          })
-          .catch((error) => {
-              console.error(error);
-              alert(error.response.data);
-          });
+    e.preventDefault();
+    const { username, password, role } = input;
+    console.log(input);
+    // API call to register user
+    axios
+      .post("http://localhost:8080/api/auth/register", { username, password, role })
+      .then((response) => {
+        console.log(response.data);
+        
+        // Show Toast notification for successful registration
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+          }
+        });
+        Toast.fire({
+          icon: "success",
+          title: "User created successfully"
+        });
+
+        // Redirect to login page
+        navigate("/login");
+      })
+      .catch((error) => {
+        console.error(error);
+        
+        // Show Toast notification for registration failure
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+          }
+        });
+        Toast.fire({
+          icon: "error",
+          title: error.response.data || "Registration failed. Please try again."
+        });
+      });
   };
 
   const navigate = useNavigate();
-
-
 
   return (
     <div className="flex flex-col justify-center items-center min-h-screen bg-gradient-to-b from-[#FFC3BE] via-[#FFEBD4] to-[#BED1BD] font-poppins">
