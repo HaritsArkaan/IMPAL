@@ -84,7 +84,7 @@ const Header = () => {
                   onClick={toggleDropdown}
                   className="text-black hover:text-gray-700 rounded-full p-1"
                 >
-                  <UserCircle size={40} stroke={1.5} />
+                  <IconUserCircle size={55} stroke={1.5} />
                 </button>
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
