@@ -21,57 +21,45 @@ function App() {
   };
 
   const handleDelete = async (reviewId) => {
-    const swalWithBootstrapButtons = Swal.mixin({
-      customClass: {
-        confirmButton: "btn btn-success",
-        cancelButton: "btn btn-danger"
-      },
-      buttonsStyling: false
-    });
-
-    // Tampilkan SweetAlert untuk konfirmasi penghapusan
-    const result = await swalWithBootstrapButtons.fire({
+    // Menampilkan SweetAlert untuk konfirmasi penghapusan
+    Swal.fire({
       title: "Are you sure?",
       text: "You won't be able to revert this!",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Yes, delete it!",
-      cancelButtonText: "No, cancel!",
-      reverseButtons: true
-    });
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!"
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          // Mengirim request untuk menghapus review berdasarkan reviewId
+          await axios.delete(`${baseURL}/reviews/${reviewId}`, {
+            headers: {
+              Authorization: `Bearer ${Cookies.get("token")}`,
+            },
+          });
 
-    if (result.isConfirmed) {
-      try {
-        // Mengirim request untuk menghapus review berdasarkan reviewId
-        await axios.delete(`${baseURL}/reviews/${reviewId}`, {
-          headers: {
-            Authorization: `Bearer ${Cookies.get("token")}`,
-          },
-        });
+          // Menghapus review yang sudah dihapus dari state
+          setData((prevData) => prevData.filter((item) => item.id !== reviewId));
 
-        // Menghapus review yang sudah dihapus dari state
-        setData((prevData) => prevData.filter((item) => item.id !== reviewId));
-
-        swalWithBootstrapButtons.fire({
-          title: "Deleted!",
-          text: "Your review has been deleted.",
-          icon: "success"
-        });
-      } catch (error) {
-        console.error("Error deleting review:", error);
-        swalWithBootstrapButtons.fire({
-          title: "Failed to delete!",
-          text: "There was an issue deleting the review.",
-          icon: "error"
-        });
+          // Menampilkan SweetAlert konfirmasi penghapusan berhasil
+          Swal.fire({
+            title: "Deleted!",
+            text: "Your review has been deleted.",
+            icon: "success"
+          });
+        } catch (error) {
+          console.error("Error deleting review:", error);
+          // Menampilkan SweetAlert jika ada error dalam penghapusan
+          Swal.fire({
+            title: "Failed to delete!",
+            text: "There was an issue deleting the review.",
+            icon: "error"
+          });
+        }
       }
-    } else if (result.dismiss === Swal.DismissReason.cancel) {
-      swalWithBootstrapButtons.fire({
-        title: "Cancelled",
-        text: "Your review is safe :)",
-        icon: "error"
-      });
-    }
+    });
   };
 
   useEffect(() => {

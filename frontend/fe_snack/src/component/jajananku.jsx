@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { IconEdit, IconTrash, IconUserCircle, IconStar } from "@tabler/icons-react";
-import { Link } from 'react-router-dom';
+import { IconEdit, IconTrash, IconStar } from "@tabler/icons-react";
 import axios from "axios";
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 import Header from './Header';
+import Swal from "sweetalert2";
 
 function App() {
   const [data, setData] = useState([]);
@@ -40,20 +40,44 @@ function App() {
     fetchSnacksAndStats();
   }, [userId]);
 
-  const handleDelete = async (snackId) => {
-    try {
-      await axios.delete(`${baseURL}/api/snacks/${snackId}`, {
-        headers: {
-          Authorization: `Bearer ${Cookies.get("token")}`
+  const handleDelete = (snackId) => {
+    // Menampilkan SweetAlert untuk konfirmasi penghapusan
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!"
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          // Mengirim request untuk menghapus snack berdasarkan snackId
+          await axios.delete(`${baseURL}/api/snacks/${snackId}`, {
+            headers: {
+              Authorization: `Bearer ${Cookies.get("token")}`
+            }
+          });
+          // Menghapus snack yang sudah dihapus dari state
+          setData((prevData) => prevData.filter((item) => item.id !== snackId));
+          // Menampilkan SweetAlert konfirmasi penghapusan berhasil
+          Swal.fire({
+            title: "Deleted!",
+            text: "Your snack has been deleted.",
+            icon: "success"
+          });
+        } catch (error) {
+          console.error("Error deleting snack:", error);
+          // Menampilkan SweetAlert jika ada error dalam penghapusan
+          Swal.fire({
+            title: "Failed to delete!",
+            text: "There was an issue deleting the snack.",
+            icon: "error"
+          });
         }
-      });
-      // Remove the deleted snack from the state
-      setData((prevData) => prevData.filter((item) => item.id !== snackId));
-      alert("Snack deleted successfully");
-    } catch (error) {
-      console.error("Error deleting snack:", error);
-      alert("Failed to delete snack");
-    }
+      }
+    });
   };
 
   return (
@@ -65,7 +89,7 @@ function App() {
         Jajananku
       </h1>
 
-      {/* Review Grid */}
+      {/* Snack Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-8 max-w-[900px] mx-auto">
         {data.length > 0 && data.map((item) => (
           <div key={item.id} className="w-[250px] mx-auto">
