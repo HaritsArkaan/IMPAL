@@ -13,7 +13,6 @@ import RegisterForm from './component/register';
 import Review from './component/Reviewku';
 import Jajananku from './component/jajananku';
 import Favoritku from './component/favoritku';
-import PopUpReview from './component/popUpReview';
 
 function App() {
   return (
@@ -31,7 +30,6 @@ function App() {
         <Route path="/jajananku" element={<Jajananku/>} />
         <Route path="/favoritku" element={<Favoritku/>} />
         <Route path="*" element={<Navigate to="/" replace />} />
-        <Route path="/popUpReview" element={<PopUpReview />} />
       </Routes>
     </Router>
   );
