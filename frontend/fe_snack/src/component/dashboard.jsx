@@ -128,9 +128,6 @@ function Dashboard() {
                     alt={item.name}
                     className="w-full h-full object-cover"
                   />
-                  <button className="absolute right-2 top-2 text-white hover:text-white">
-                    <Heart className="h-5 w-5" />
-                  </button>
                 </div>
                 <div className="p-4">
                   <div className="flex items-center justify-between">

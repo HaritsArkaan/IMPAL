@@ -6,10 +6,13 @@ import { Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PopUpReview from './popUpReview';
 import Header from './Header';
+import Cookies from 'js-cookie';
+import {jwtDecode} from 'jwt-decode';
 
 export default function DetailJajanan() {
   const [review, setReview] = useState([]);
   const [popUp, setPopUp] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
   const tooglePopUp = () => {
     setPopUp(!popUp);
   };
@@ -38,6 +41,43 @@ export default function DetailJajanan() {
 
   const averageRating = calculateAverageRating(review);
 
+  // Handle add to favorites
+  const handleAddFavorite = () => {
+    const token = Cookies.get('token');
+    if (!token) {
+      console.error('No token found. User might not be logged in.');
+      return;
+    }
+
+    let userId;
+    try {
+      userId = jwtDecode(Cookies.get("token")).id;
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return;
+    }
+
+    const newFavoriteStatus = !isFavorite;
+    setIsFavorite(newFavoriteStatus);
+
+    axios.post(`${baseURL}/favorities`, {
+      id: 0,
+      userId: userId,
+      snackId: item.id
+    }, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    .then(response => {
+      console.log('Favorite status updated:', response.data);
+    })
+    .catch(error => {
+      console.error('Error updating favorite status:', error);
+      setIsFavorite(!newFavoriteStatus); // Revert on error
+    });
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -55,8 +95,11 @@ export default function DetailJajanan() {
           <div className="w-full md:w-1/2">
             <div className="flex justify-between items-start">
               <h1 className="text-2xl font-bold">{item.name}</h1>
-              <button className="p-2 rounded-full hover:bg-gray-100 text-[#70AE6E]">
-                <Heart className="h-5 w-5" />
+              <button 
+                className={`p-2 rounded-full hover:bg-gray-100 ${isFavorite ? 'text-red-500' : 'text-[#70AE6E]'}`}
+                onClick={handleAddFavorite}
+              >
+                <Heart className="h-5 w-5" fill={isFavorite ? 'currentColor' : 'none'} />
               </button>
             </div>
 
@@ -150,3 +193,4 @@ export default function DetailJajanan() {
     </div>
   );
 }
+
