@@ -38,10 +38,7 @@ function Profile() {
           {/* Buttons */}
           <div className="mt-auto">
             <div className="flex justify-between mb-4">
-              <button className="bg-[#A1D69F] hover:bg-green-400 text-black font-semibold py-2 px-4 text-sm rounded-lg">
-                Ganti Password
-              </button>
-              <button className="bg-[#FF887E] hover:bg-red-400 text-black font-semibold py-2 px-4 text-sm rounded-lg">
+              <button className="bg-[#FF887E] hover:bg-red-400 text-black font-semibold py-3 px-4 text-sm rounded-lg w-full">
                 Hapus Akun
               </button>
             </div>

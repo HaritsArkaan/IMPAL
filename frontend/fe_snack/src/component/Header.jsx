@@ -149,10 +149,6 @@ const Header = () => {
             )}
           </div>
 
-          <Link to="/filter" className="flex items-center space-x-1">
-            <Filter className="h-4 w-4" />
-            <span className="text-sm">Filter Jajanan</span>
-          </Link>
           <Link to="/add" className="flex items-center space-x-1">
             <PlusCircle className="h-4 w-4" />
             <span className="text-sm">Tambah Jajanan</span>

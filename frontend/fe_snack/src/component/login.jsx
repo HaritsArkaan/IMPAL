@@ -75,6 +75,13 @@ const LoginForm = () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-[#FFC3BE] via-[#FFEBD4] to-[#BED1BD] font-poppins">
+      <div className="absolute top-6 left-6">
+        <img
+          src="/logo.jpg"
+          alt="Logo"
+          className="w-100 h-100 object-contain mix-blend-multiply"
+        />
+      </div>
       <div className="bg-white/40 backdrop-blur-[40px] rounded-3xl shadow-lg p-10 w-[28rem] h-auto">
         <form>
           {/* Nama Pengguna */}
@@ -121,11 +128,6 @@ const LoginForm = () => {
                 className="w-full bg-[#D1C5C5] rounded-md pl-10 py-2 text-gray-800 focus:outline-none focus:ring focus:ring-pink-300"
               />
             </div>
-          </div>
-
-          {/* Lupa Kata Sandi (Posisi Kanan) */}
-          <div className="flex justify-end text-sm text-gray-500 mb-6">
-            <span className="cursor-pointer hover:underline">Lupa kata sandi?</span>
           </div>
 
           {/* Tombol Masuk */}

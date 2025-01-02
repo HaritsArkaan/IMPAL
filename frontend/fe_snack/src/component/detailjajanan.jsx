@@ -1,82 +1,129 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import Risol from "../photo/risol.jpg";
 import axios from 'axios';
 import { Heart } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import PopUpReview from './popUpReview';
 import Header from './Header';
 import Cookies from 'js-cookie';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 
 export default function DetailJajanan() {
   const [review, setReview] = useState([]);
   const [popUp, setPopUp] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
-  const tooglePopUp = () => {
-    setPopUp(!popUp);
-  };
+  const [favoriteId, setFavoriteId] = useState(null);
+  const [userId, setUserId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const location = useLocation();
   const { item } = location.state;
   const baseURL = "http://localhost:8080";
 
-  // Mengambil data review dari API
-  useEffect(() => {
-    axios.get(`http://localhost:8080/reviews/snack/${item.id}`)
-      .then(response => {
-        setReview(response.data);
-      })
-      .catch(error => {
-        console.error(error);
-      });
-  }, [item.id]);
+  const togglePopUp = () => {
+    setPopUp(!popUp);
+  };
 
-  // Menghitung rating rata-rata jika tersedia
+  const fetchUserFavorites = useCallback(async (token, userId) => {
+    try {
+      const response = await axios.get(`${baseURL}/favorities/user/${userId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const favorites = response.data;
+      const favorite = favorites.find(fav => fav.snackId === item.id);
+      if (favorite) {
+        setIsFavorite(true);
+        setFavoriteId(favorite.id);
+      }
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+      setError('Failed to fetch favorites. Please try again later.');
+    }
+  }, [baseURL, item.id]);
+
+  useEffect(() => {
+    const token = Cookies.get('token');
+    if (token) {
+      try {
+        const decodedToken = jwtDecode(token);
+        setUserId(decodedToken.id);
+        fetchUserFavorites(token, decodedToken.id);
+      } catch (error) {
+        console.error('Error decoding token:', error);
+        setError('Authentication error. Please log in again.');
+      }
+    }
+    setIsLoading(false);
+  }, [fetchUserFavorites]);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await axios.get(`${baseURL}/reviews/snack/${item.id}`);
+        setReview(response.data);
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+        setError('Failed to fetch reviews. Please try again later.');
+      }
+    };
+
+    fetchReviews();
+  }, [baseURL, item.id]);
+
   const calculateAverageRating = (reviews) => {
     if (reviews.length === 0) return 0;
     const totalRating = reviews.reduce((acc, review) => acc + review.rating, 0);
-    return (totalRating / reviews.length).toFixed(1); // Rata-rata rating dengan 1 angka di belakang koma
+    return (totalRating / reviews.length).toFixed(1);
   };
 
   const averageRating = calculateAverageRating(review);
 
-  // Handle add to favorites
-  const handleAddFavorite = () => {
+  const handleAddFavorite = async () => {
     const token = Cookies.get('token');
-    if (!token) {
-      console.error('No token found. User might not be logged in.');
-      return;
-    }
-
-    let userId;
-    try {
-      userId = jwtDecode(Cookies.get("token")).id;
-    } catch (error) {
-      console.error('Error decoding token:', error);
+    if (!token || !userId) {
+      setError('You must be logged in to manage favorites.');
       return;
     }
 
     const newFavoriteStatus = !isFavorite;
     setIsFavorite(newFavoriteStatus);
 
-    axios.post(`${baseURL}/favorities`, {
-      id: 0,
-      userId: userId,
-      snackId: item.id
-    }, {
-      headers: {
-        'Authorization': `Bearer ${token}`
+    try {
+      if (newFavoriteStatus) {
+        // Menambahkan favorit
+        const response = await axios.post(`${baseURL}/favorities`, {
+          userId: userId,
+          snackId: item.id
+        }, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        setFavoriteId(response.data.id); // Simpan favoriteId yang dikembalikan dari API
+      } else {
+        // Menghapus favorit
+        if (!favoriteId) {
+          setError('Favorite ID not found. Unable to delete.');
+          return;
+        }
+        await axios.delete(`${baseURL}/favorities/${favoriteId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        setFavoriteId(null); // Hapus favoriteId setelah berhasil menghapus
       }
-    })
-    .then(response => {
-      console.log('Favorite status updated:', response.data);
-    })
-    .catch(error => {
+    } catch (error) {
       console.error('Error updating favorite status:', error);
-      setIsFavorite(!newFavoriteStatus); // Revert on error
-    });
+      setIsFavorite(!newFavoriteStatus); // Revert state on error
+      setError('Failed to update favorite status. Please try again.');
+    }
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -147,12 +194,12 @@ export default function DetailJajanan() {
               </p>
             </div>
             <button
-              onClick={tooglePopUp}
+              onClick={togglePopUp}
               className="w-full mt-6 bg-[#70AE6E] text-lg text-white py-2 px-4 rounded-lg hover:bg-transparent hover:text-[#70AE6E] border hover:border-[#70AE6E] transition duration-300"
             >
               Tambahkan Review
             </button>
-            <PopUpReview show={popUp} onClose={tooglePopUp} snackId={item.id || 0} />
+            <PopUpReview show={popUp} onClose={togglePopUp} snackId={item.id || 0} />
           </div>
         </div>
 
@@ -164,8 +211,8 @@ export default function DetailJajanan() {
               <div key={rev.id} className="bg-gray-100 p-4 rounded-lg">
                 <div className="flex items-center mb-2">
                   <img
-                    src={Risol}
-                    alt="Review"
+                    src="/profile.jpg"
+                    alt="Profile"
                     className="w-10 h-10 rounded-full mr-4"
                   />
                   <div>
@@ -184,7 +231,7 @@ export default function DetailJajanan() {
                     </div>
                   </div>
                 </div>
-                <p>{rev.content}</p>
+                <p className="text-gray-600">{rev.content}</p>
               </div>
             ))}
           </div>
@@ -193,4 +240,3 @@ export default function DetailJajanan() {
     </div>
   );
 }
-
