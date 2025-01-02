@@ -1,7 +1,58 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import Swal from 'sweetalert2';
+import axios from 'axios';
+import {jwtDecode} from 'jwt-decode';
+import Cookies from 'js-cookie';
 
 function Profile() {
+  const navigate = useNavigate();
+
+  const handleDeleteAccount = () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const token = Cookies.get("token");
+        if (!token) {
+          Swal.fire("Error!", "You are not logged in.", "error");
+          return;
+        }
+
+        const userId = jwtDecode(token).id;
+
+        axios.delete(`http://localhost:8080/users/${userId}`)
+          .then(response => {
+            Swal.fire(
+              "Deleted!",
+              "Your account has been deleted.",
+              "success"
+            ).then(() => {
+              // Clear the token from cookies
+              Cookies.remove("token");
+
+              // Redirect to the dashboard (login page)
+              navigate('/');
+            });
+          })
+          .catch(error => {
+            console.error('Error deleting account:', error);
+            Swal.fire(
+              "Error!",
+              "There was a problem deleting your account.",
+              "error"
+            );
+          });
+      }
+    });
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#FFC3BE] via-[#FFEBD4] to-[#BED1BD] font-poppins relative">
       {/* Logo - Positioned outside the card */}
@@ -38,7 +89,10 @@ function Profile() {
           {/* Buttons */}
           <div className="mt-auto">
             <div className="flex justify-between mb-4">
-              <button className="bg-[#FF887E] hover:bg-red-400 text-black font-semibold py-3 px-4 text-sm rounded-lg w-full">
+              <button
+                onClick={handleDeleteAccount}
+                className="bg-[#FF887E] hover:bg-red-400 text-black font-semibold py-3 px-4 text-sm rounded-lg w-full"
+              >
                 Hapus Akun
               </button>
             </div>
