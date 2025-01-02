@@ -28,6 +28,10 @@ public class FavoriteService {
         return favoriteRepository.findById(id);
     }
 
+    public List<Favorite> getFavoritesByUserId(int userId) {
+        return favoriteRepository.findByUserId(userId);
+    }
+
     public Favorite updateFavorite(int id, Favorite favoriteDetails) {
         return favoriteRepository.findById(id).map(favorite-> {
             favorite.setUserId(favoriteDetails.getUserId());

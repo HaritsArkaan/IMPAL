@@ -34,6 +34,11 @@ public class FavoriteController {
         .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/user/{id}")
+    public List<Favorite> getFavoritesByUserId(@PathVariable int id) {
+        return favoriteService.getFavoritesByUserId(id);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<Favorite> updateFavorite(@PathVariable int id, @RequestBody Favorite favoriteDetails) {
         Favorite updateFavorite = favoriteService.updateFavorite(id, favoriteDetails);
