@@ -1,25 +1,38 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Swal from 'sweetalert2';
-import { Upload } from 'lucide-react';
-import {jwtDecode} from 'jwt-decode';
-import Cookies from 'js-cookie';
-import Header from './Header';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import Swal from "sweetalert2";
+import { Upload } from "lucide-react";
+import {jwtDecode} from "jwt-decode";
+import Cookies from "js-cookie";
+import Header from "./Header";
+import axios from "axios";
 
-function TambahJajanan() {
+function EditJajanan() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Validasi jika tidak ada state item
+  useEffect(() => {
+    if (!location.state || !location.state.item) {
+      console.error("No item data found in location.state");
+      navigate("/dashboard"); // Redirect ke halaman dashboard
+    }
+  }, [location, navigate]);
+
+  // Ambil item dari location.state
+  const { item } = location.state || { item: {} };
+
   const [selectedPrice, setSelectedPrice] = useState("");
   const [customPrice, setCustomPrice] = useState("");
   const [selectedType, setSelectedType] = useState("");
-  const navigate = useNavigate();
   const [input, setInput] = useState({
-    name: "",
-    price: "",
-    seller: "",
-    contact: "",
-    location: "",
-    rating: 0,
-    type: "",
+    name: item.name || "",
+    price: item.price || "",
+    seller: item.seller || "",
+    contact: item.contact || "",
+    location: item.location || "",
+    rating: item.rating || 0,
+    type: item.type || "",
     userId: jwtDecode(Cookies.get("token")).id,
     image: "",
   });
@@ -34,11 +47,11 @@ function TambahJajanan() {
       didOpen: (toast) => {
         toast.onmouseenter = Swal.stopTimer;
         toast.onmouseleave = Swal.resumeTimer;
-      }
+      },
     });
     Toast.fire({
       icon: "success",
-      title: "Snack Berhasil Dibuat"
+      title: "Snack Berhasil Diperbarui",
     });
   };
 
@@ -52,12 +65,12 @@ function TambahJajanan() {
       didOpen: (toast) => {
         toast.onmouseenter = Swal.stopTimer;
         toast.onmouseleave = Swal.resumeTimer;
-      }
+      },
     });
     Toast.fire({
       icon: "error",
-      title: "Snack Gagal Dibuat",
-      text: "Pastikan ukuran file kurang dari 10MB"
+      title: "Snack Gagal Diperbarui",
+      text: "Pastikan ukuran file kurang dari 10MB",
     });
   };
 
@@ -79,11 +92,8 @@ function TambahJajanan() {
     event.preventDefault();
 
     const { name, price, seller, contact, location, rating, type, userId, image } = input;
-    console.log(input);
-    console.log(Cookies.get("token"));
 
-    // Validasi input
-    if (!name || !price || !seller || !contact || !location  || !type || !image) {
+    if (!name || !price || !seller || !contact || !location || !type || !image) {
       console.error("All fields are required!");
       alert("Please fill in all fields.");
       return;
@@ -93,9 +103,8 @@ function TambahJajanan() {
       const formData = new FormData();
       formData.append("file", image);
 
-      // Kirim data ke server menggunakan params untuk selain gambar
-      const response = await axios.post(
-        "http://localhost:8080/api/snacks",
+      const response = await axios.put(
+        `http://localhost:8080/api/snacks/${item.id}`,
         formData,
         {
           headers: {
@@ -117,14 +126,13 @@ function TambahJajanan() {
 
       console.log("response:", response.data);
       popUpSuccess();
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (error) {
-      console.error("Error creating snack:", error.response?.data || error.message);
+      console.error("Error updating snack:", error.response?.data || error.message);
       popUpFailed();
     }
   };
 
-  // Dominant color from the uploaded image
   const primaryColor = "rgb(112, 174, 110)";
 
   return (
@@ -132,15 +140,13 @@ function TambahJajanan() {
       <Header />
 
       <div className="max-w-2xl mx-auto p-4">
-        {/* Main Form */}
         <main>
           <h1
             className="text-3xl font-semibold text-center mb-8"
             style={{ color: primaryColor }}
           >
-            Tambah Jajanan
+            Edit Jajanan
           </h1>
-          {/* Image Upload */}
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 mb-8 text-center">
             <div className="flex flex-col items-center gap-4">
               <Upload size={48} className="text-gray-400" />
@@ -153,7 +159,8 @@ function TambahJajanan() {
               <p className="text-gray-600">Tambahkan foto jajanan disini</p>
             </div>
           </div>
-          {/* Snack Name */}
+
+          {/* Nama Jajanan */}
           <div className="mb-6">
             <label htmlFor="snackName" className="block mb-2">
               Nama Jajanan <span className="text-gray-400 text-sm">0/100</span>
@@ -173,23 +180,23 @@ function TambahJajanan() {
           <div className="mb-6">
             <label className="block mb-2">Harga Jajanan</label>
             <div className="flex flex-wrap gap-3 mb-3">
-            {["5000", "7000", "10000", "15000"].map((price) => (
-                  <button
-                    key={price}
-                    name="price"
-                    onClick={() => {
-                      setSelectedPrice(price); 
-                      setInput((prevInput) => ({ ...prevInput, price })); // Set langsung ke input
-                    }}
-                    className={`px-4 py-2 rounded-full border ${
-                      selectedPrice === price
-                        ? "bg-green-500 text-white border-green-500"
-                        : "border-gray-300 text-gray-700"
-                    }`}
-                  >
-                    Rp {price}
-                  </button>
-                ))}
+              {["5000", "7000", "10000", "15000"].map((price) => (
+                <button
+                  key={price}
+                  name="price"
+                  onClick={() => {
+                    setSelectedPrice(price); 
+                    setInput((prevInput) => ({ ...prevInput, price })); // Set langsung ke input
+                  }}
+                  className={`px-4 py-2 rounded-full border ${
+                    selectedPrice === price
+                      ? "bg-green-500 text-white border-green-500"
+                      : "border-gray-300 text-gray-700"
+                  }`}
+                >
+                  Rp {price}
+                </button>
+              ))}
               <button
                 onClick={() => setSelectedPrice("custom")}
                 className={`px-4 py-2 rounded-full border ${
@@ -219,86 +226,89 @@ function TambahJajanan() {
           <div className="mb-6">
             <label className="block mb-2">Jenis Jajanan</label>
             <p className="text-gray-500 text-sm mb-3">Pilih jenis yang menggambarkan jajananmu!</p>
-            <div className="flex items-center gap-3">
-              {["Makanan", "Minuman"].map((type) => (
-                <button
-                  key={type}
-                  onClick={() => {
-                    setSelectedType(type);
-                    setInput({ ...input, type });
-                  }}
-                  className={`px-4 py-2 rounded-full border ${
-                    selectedType === type
-                      ? "bg-green-500 text-white border-green-500"
-                      : "border-gray-300 text-gray-700"
-                  }`}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
-          </div>
-          {/* Address */}
-          <div className="mb-6">
-            <label htmlFor="address" className="block mb-2">
-              Alamat Jajanan <span className="text-gray-400 text-sm">0/300</span>
-            </label>
-            <textarea
-              id="address"
-              name="location"
-              value={input.location}
-              onChange={handleInput}
-              placeholder="Masukkan alamat jajanan disini..."
-              className="w-full p-3 rounded-lg bg-green-50 border border-green-100 min-h-[100px]"
-              maxLength={300}
-            />
-          </div>
-          {/* Seller */}
-          <div className="mb-6">
-            <label htmlFor="seller" className="block mb-2">
-              Penjual Jajanan <span className="text-gray-400 text-sm">0/300</span>
-            </label>
-            <textarea
-              id="seller"
-              name="seller"
-              value={input.seller}
-              onChange={handleInput}
-              placeholder="Masukkan nama penjual jajanan disini..."
-              className="w-full p-3 rounded-lg bg-green-50 border border-green-100 min-h-[100px]"
-              maxLength={300}
-            />
-          </div>
-          {/* Contact */}
-          <div className="mb-8">
-            <label htmlFor="contact" className="block mb-2">
-              Kontak Jajanan <span className="text-gray-400 text-sm">0/300</span>
-            </label>
-            <input
-              id="contact"
-              type="text"
-              name="contact"
-              value={input.contact}
-              onChange={handleInput}
-              placeholder="Masukkan kontak jajanan disini..."
-              className="w-full p-3 rounded-lg bg-green-50 border border-green-100"
-              maxLength={300}
-            />
-          </div>
+            <div className="flex flex-wrap gap-3">
+  {["Manis", "Asin", "Pedas", "Lainnya"].map((type) => (
+    <button
+      key={type}
+      name="type"
+      onClick={() => {
+        setSelectedType(type);
+        setInput((prevInput) => ({ ...prevInput, type })); // Set langsung ke input
+      }}
+      className={`px-4 py-2 rounded-full border ${
+        selectedType === type
+          ? "bg-green-500 text-white border-green-500"
+          : "border-gray-300 text-gray-700"
+      }`}
+    >
+      {type}
+    </button>
+  ))}
+</div>
+</div>
 
-          {/* Submit Button */}
-          <div className="flex justify-center">
-            <button
-              onClick={handleSubmit}
-              className="px-8 py-3 text-white rounded-lg hover:opacity-90 transition-colors"
-              style={{ backgroundColor: primaryColor }}
-            >
-              Simpan
-            </button>
-          </div>
-        </main>
-      </div>
-    </div>
-  );
+{/* Seller Name */}
+<div className="mb-6">
+  <label htmlFor="sellerName" className="block mb-2">
+    Penjual
+  </label>
+  <input
+    id="sellerName"
+    type="text"
+    name="seller"
+    value={input.seller}
+    onChange={handleInput}
+    placeholder="Masukkan nama penjual disini..."
+    className="w-full p-3 rounded-lg bg-green-50 border border-green-100"
+  />
+</div>
+
+{/* Contact */}
+<div className="mb-6">
+  <label htmlFor="contact" className="block mb-2">
+    Kontak Penjual
+  </label>
+  <input
+    id="contact"
+    type="text"
+    name="contact"
+    value={input.contact}
+    onChange={handleInput}
+    placeholder="Masukkan kontak penjual disini..."
+    className="w-full p-3 rounded-lg bg-green-50 border border-green-100"
+  />
+</div>
+
+{/* Location */}
+<div className="mb-6">
+  <label htmlFor="location" className="block mb-2">
+    Lokasi Jajanan
+  </label>
+  <input
+    id="location"
+    type="text"
+    name="location"
+    value={input.location}
+    onChange={handleInput}
+    placeholder="Masukkan lokasi jajanan disini..."
+    className="w-full p-3 rounded-lg bg-green-50 border border-green-100"
+  />
+</div>
+
+{/* Submit Button */}
+<div className="text-center">
+  <button
+    onClick={handleSubmit}
+    className="px-6 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600"
+  >
+    Simpan Perubahan
+  </button>
+</div>
+</main>
+</div>
+</div>
+);
 }
 
-export default TambahJajanan;
+export default EditJajanan;
+

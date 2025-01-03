@@ -13,6 +13,7 @@ import RegisterForm from './component/register';
 import Review from './component/Reviewku';
 import Jajananku from './component/jajananku';
 import Favoritku from './component/favoritku';
+import EditJajanan from './component/editJajanan';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
         <Route path="/review" element={<Review />} />
         <Route path="/jajananku" element={<Jajananku/>} />
         <Route path="/favoritku" element={<Favoritku/>} />
+        <Route path="/editjajanan" element={<EditJajanan />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { IconEdit, IconTrash, IconStar } from "@tabler/icons-react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
@@ -8,6 +9,7 @@ import Swal from "sweetalert2";
 
 function App() {
   const [data, setData] = useState([]);
+  const navigate = useNavigate(); // Use navigate from react-router-dom
   const baseURL = "http://localhost:8080";
   const userId = jwtDecode(Cookies.get("token")).id;
 
@@ -80,6 +82,15 @@ function App() {
     });
   };
 
+  const handleEdit = (item) => {
+    // Navigating to /EditJajanan with the selected snackId
+    navigate('/editjajanan', {state: {item}});
+  };
+
+  const handleButtonClick = (item) => {
+    navigate('/detailjajanan', { state: { item } });
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -92,14 +103,16 @@ function App() {
       {/* Snack Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-8 max-w-[900px] mx-auto">
         {data.length > 0 && data.map((item) => (
-          <div key={item.id} className="w-[250px] mx-auto">
+          <div key={item.id} className="w-[250px] mx-auto" onClick={() => handleButtonClick(item)}>
             <div className="relative mb-4">
               <img
                 src={`${baseURL}${item.image_URL}`}
                 alt={item.name}
                 className="w-full h-[300px] object-cover rounded-[15px]"
               />
-              <button className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-[#70AE6E] text-white px-4 py-1 rounded-[8px] flex items-center gap-1 text-sm font-medium">
+              <button 
+                onClick={() => handleEdit(item)} // Add onClick handler for Edit button
+                className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-[#70AE6E] text-white px-4 py-1 rounded-[8px] flex items-center gap-1 text-sm font-medium">
                 <IconEdit className="w-4 h-4" />
                 Edit Jajanan
               </button>
