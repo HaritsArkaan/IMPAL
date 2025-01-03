@@ -1,12 +1,66 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Swal from 'sweetalert2';
 import axios from 'axios';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import Cookies from 'js-cookie';
 
 function Profile() {
   const navigate = useNavigate();
+  const [userData, setUserData] = useState({
+    username: "",
+    id: null
+  });
+
+  useEffect(() => {
+    const token = Cookies.get("token");
+    
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const decoded = jwtDecode(token);
+      
+      // Set the user data from token without verification
+      setUserData({
+        username: decoded.username,
+        id: decoded.id
+      });
+
+      // Optional: Fetch user data from backend instead of relying solely on token
+      axios.get(`http://localhost:8080/users/${decoded.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      .then(response => {
+        setUserData({
+          username: response.data.username,
+          id: response.data.id
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching user data:', error);
+        // Don't redirect, just show error message
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Failed to fetch user data"
+        });
+      });
+
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      // Don't redirect, just show error message
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Invalid session"
+      });
+    }
+  }, []);
 
   const handleDeleteAccount = () => {
     Swal.fire({
@@ -20,24 +74,23 @@ function Profile() {
     }).then((result) => {
       if (result.isConfirmed) {
         const token = Cookies.get("token");
-        if (!token) {
+        if (!token || !userData.id) {
           Swal.fire("Error!", "You are not logged in.", "error");
           return;
         }
 
-        const userId = jwtDecode(token).id;
-
-        axios.delete(`http://localhost:8080/users/${userId}`)
+        axios.delete(`http://localhost:8080/users/${userData.id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
           .then(response => {
             Swal.fire(
               "Deleted!",
               "Your account has been deleted.",
               "success"
             ).then(() => {
-              // Clear the token from cookies
               Cookies.remove("token");
-
-              // Redirect to the dashboard (login page)
               navigate('/');
             });
           })
@@ -66,7 +119,7 @@ function Profile() {
 
       {/* Form Container - Centered and Enlarged */}
       <div className="flex justify-center items-center flex-grow">
-        <div className="bg-white rounded-[35px] shadow-md p-8 w-[380px] h-[600px] relative flex flex-col">
+        <div className="bg-white/40 backdrop-blur-[40px] rounded-[35px] shadow-md p-8 w-[380px] h-[600px] relative flex flex-col">
           {/* Profile Picture */}
           <div className="flex justify-center relative mb-6">
             <div className="w-32 h-32 rounded-full border-4 border-gray-200 overflow-hidden flex items-center justify-center">
@@ -83,7 +136,11 @@ function Profile() {
             <label className="block text-gray-700 font-medium text-sm mb-2">
               Username
             </label>
-            <div className="bg-[#BED1BD] h-10 rounded-lg"></div>
+            <div className="bg-[#BED1BD] h-10 rounded-lg flex items-center px-4">
+              <span className="text-gray-800 font-medium">
+                {userData.username || "Loading..."}
+              </span>
+            </div>
           </div>
 
           {/* Buttons */}

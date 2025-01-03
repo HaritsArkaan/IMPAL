@@ -1,15 +1,18 @@
-import React, { useEffect, useState } from "react";
-import { UserIcon, LockClosedIcon, EnvelopeIcon } from "@heroicons/react/24/solid";
+import React, { useState } from "react";
+import { UserIcon, LockClosedIcon } from "@heroicons/react/24/solid";
 import { Link, useNavigate } from 'react-router-dom';
 import axios from "axios";
-import Swal from "sweetalert2"; // Import SweetAlert
+import Swal from "sweetalert2";
 
 const RegisterForm = () => {
   const [input, setInput] = useState({
     username: "",
     password: "",
+    confirmPassword: "",
     role: "USER"
   });
+
+  const navigate = useNavigate();
 
   const handleInput = (e) => {
     setInput({
@@ -20,8 +23,37 @@ const RegisterForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const { username, password, role } = input;
-    console.log(input);
+    const { username, password, confirmPassword, role } = input;
+
+    if (!username || !password || !confirmPassword) {
+      // Show error notification if fields are empty
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "All fields are required",
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Passwords do not match",
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
+      return;
+    }
+
     // API call to register user
     axios
       .post("http://localhost:8080/api/auth/register", { username, password, role })
@@ -29,20 +61,14 @@ const RegisterForm = () => {
         console.log(response.data);
         
         // Show Toast notification for successful registration
-        const Toast = Swal.mixin({
+        Swal.fire({
+          icon: "success",
+          title: "User created successfully",
           toast: true,
           position: "top-end",
           showConfirmButton: false,
           timer: 3000,
           timerProgressBar: true,
-          didOpen: (toast) => {
-            toast.onmouseenter = Swal.stopTimer;
-            toast.onmouseleave = Swal.resumeTimer;
-          }
-        });
-        Toast.fire({
-          icon: "success",
-          title: "User created successfully"
         });
 
         // Redirect to login page
@@ -52,31 +78,30 @@ const RegisterForm = () => {
         console.error(error);
         
         // Show Toast notification for registration failure
-        const Toast = Swal.mixin({
+        Swal.fire({
+          icon: "error",
+          title: error.response?.data || "Registration failed. Please try again.",
           toast: true,
           position: "top-end",
           showConfirmButton: false,
           timer: 3000,
           timerProgressBar: true,
-          didOpen: (toast) => {
-            toast.onmouseenter = Swal.stopTimer;
-            toast.onmouseleave = Swal.resumeTimer;
-          }
-        });
-        Toast.fire({
-          icon: "error",
-          title: error.response.data || "Registration failed. Please try again."
         });
       });
   };
 
-  const navigate = useNavigate();
-
   return (
     <div className="flex flex-col justify-center items-center min-h-screen bg-gradient-to-b from-[#FFC3BE] via-[#FFEBD4] to-[#BED1BD] font-poppins">
+      <div className="absolute top-6 left-6">
+        <img
+          src="/logo.jpg"
+          alt="Logo"
+          className="w-100 h-100 object-contain mix-blend-multiply"
+        />
+      </div>
       {/* Form Container */}
       <div className="bg-white/40 backdrop-blur-[40px] rounded-3xl shadow-lg px-10 py-16 w-[28rem] h-auto">
-        <form type="submit">
+        <form onSubmit={handleSubmit}>
           {/* Nama Pengguna */}
           <div className="mb-6 pt-14">
             <div className="relative">
@@ -90,6 +115,7 @@ const RegisterForm = () => {
                 value={input.username}
                 placeholder="Nama Pengguna"
                 className="w-full bg-[#D1C5C5] text-sm rounded-md pl-10 py-3 text-gray-800 focus:outline-none focus:ring focus:ring-pink-300"
+                required
               />
             </div>
           </div>
@@ -107,6 +133,7 @@ const RegisterForm = () => {
                 value={input.password}
                 placeholder="Kata Sandi"
                 className="w-full bg-[#D1C5C5] text-sm rounded-md pl-10 py-3 text-gray-800 focus:outline-none focus:ring focus:ring-pink-300"
+                required
               />
             </div>
           </div>
@@ -119,8 +146,12 @@ const RegisterForm = () => {
               </span>
               <input
                 type="password"
+                name="confirmPassword"
+                onChange={handleInput}
+                value={input.confirmPassword}
                 placeholder="Ulangi Kata Sandi"
                 className="w-full bg-[#D1C5C5] text-sm rounded-md pl-10 py-3 text-gray-800 focus:outline-none focus:ring focus:ring-pink-300"
+                required
               />
             </div>
           </div>
@@ -128,28 +159,22 @@ const RegisterForm = () => {
           {/* Tombol Daftar */}
           <button
             type="submit"
-            onClick={handleSubmit}
-            className="w-full bg-black text-white rounded-md py-3 text-sm hover:bg-gray-800 transition"
+            className={`w-full ${
+              !input.username || !input.password || !input.confirmPassword
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-black hover:bg-gray-800'
+            } text-white rounded-md py-3 text-sm transition`}
+            disabled={!input.username || !input.password || !input.confirmPassword}
           >
             Daftar
           </button>
         </form>
 
-        {/* Tulisan "atau masuk dengan" */}
-        <div className="text-center mt-6 text-sm text-gray-600">
-          <span>atau masuk dengan</span>
-        </div>
-
-        {/* Logo Google */}
-        <div className="flex items-center justify-center mt-4">
-          <button
-            type="button"
-            onClick={() => alert("Login dengan Google")} // Ganti dengan aksi login sebenarnya
-            className="text-black text-2xl font-bold cursor-pointer"
-            aria-label="Login dengan Google"
-          >
-            G
-          </button>
+        {/* Link to Login Page */}
+        <div className="text-center mt-6">
+          <Link to="/login" className="text-sm text-gray-600 hover:text-gray-800">
+            Sudah punya akun? Masuk di sini
+          </Link>
         </div>
       </div>
     </div>
@@ -157,3 +182,4 @@ const RegisterForm = () => {
 };
 
 export default RegisterForm;
+

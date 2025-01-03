@@ -3,13 +3,15 @@ import axios from "axios";
 import { UserIcon, LockClosedIcon } from "@heroicons/react/24/solid";
 import { Link, useNavigate } from 'react-router-dom';
 import Cookies from "js-cookie";
-import Swal from "sweetalert2";  // Import SweetAlert
+import Swal from "sweetalert2";
 
 const LoginForm = () => {
   const [input, setInput] = useState({
     username: "",
     password: "",
   });
+
+  const navigate = useNavigate();
 
   const handleInput = (e) => {
     setInput({
@@ -21,7 +23,22 @@ const LoginForm = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const { username, password } = input;
-    console.log(input);
+
+    if (!username || !password) {
+      // Show error notification if fields are empty
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Username and password are required",
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
+      return;
+    }
+
     // API call to login user
     axios
       .post("http://localhost:8080/api/auth/login", { username, password })
@@ -31,20 +48,14 @@ const LoginForm = () => {
         Cookies.set("token", response.data.token, { expires: 1 });
         
         // Show Toast notification for successful login
-        const Toast = Swal.mixin({
+        Swal.fire({
+          icon: "success",
+          title: "Signed in successfully",
           toast: true,
           position: "top-end",
           showConfirmButton: false,
           timer: 3000,
           timerProgressBar: true,
-          didOpen: (toast) => {
-            toast.onmouseenter = Swal.stopTimer;
-            toast.onmouseleave = Swal.resumeTimer;
-          }
-        });
-        Toast.fire({
-          icon: "success",
-          title: "Signed in successfully"
         });
 
         // Redirect to dashboard
@@ -53,25 +64,17 @@ const LoginForm = () => {
       .catch((error) => {
         console.error(error);
         // Show Toast notification for failed login
-        const Toast = Swal.mixin({
+        Swal.fire({
+          icon: "error",
+          title: "Login failed. Please try again.",
           toast: true,
           position: "top-end",
           showConfirmButton: false,
           timer: 3000,
           timerProgressBar: true,
-          didOpen: (toast) => {
-            toast.onmouseenter = Swal.stopTimer;
-            toast.onmouseleave = Swal.resumeTimer;
-          }
-        });
-        Toast.fire({
-          icon: "error",
-          title: "Login failed. Please try again."
         });
       });
   };
-
-  const navigate = useNavigate();
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-[#FFC3BE] via-[#FFEBD4] to-[#BED1BD] font-poppins">
@@ -83,7 +86,7 @@ const LoginForm = () => {
         />
       </div>
       <div className="bg-white/40 backdrop-blur-[40px] rounded-3xl shadow-lg p-10 w-[28rem] h-auto">
-        <form>
+        <form onSubmit={handleSubmit}>
           {/* Nama Pengguna */}
           <div className="mb-6 pt-14">
             <label
@@ -101,8 +104,10 @@ const LoginForm = () => {
                 id="username"
                 name="username"
                 onChange={handleInput}
+                value={input.username}
                 placeholder="Nama Pengguna"
                 className="w-full bg-[#D1C5C5] rounded-md pl-10 py-2 text-gray-800 focus:outline-none focus:ring focus:ring-pink-300"
+                required
               />
             </div>
           </div>
@@ -124,8 +129,10 @@ const LoginForm = () => {
                 id="password"
                 name="password"
                 onChange={handleInput}
+                value={input.password}
                 placeholder="Kata Sandi"
                 className="w-full bg-[#D1C5C5] rounded-md pl-10 py-2 text-gray-800 focus:outline-none focus:ring focus:ring-pink-300"
+                required
               />
             </div>
           </div>
@@ -133,8 +140,12 @@ const LoginForm = () => {
           {/* Tombol Masuk */}
           <button
             type="submit"
-            onClick={handleSubmit}
-            className="w-full bg-gray-800 text-white rounded-md py-2 hover:bg-gray-700 transition text-center items-center justify-center"
+            className={`w-full ${
+              !input.username || !input.password
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-gray-800 hover:bg-gray-700'
+            } text-white rounded-md py-2 transition text-center items-center justify-center`}
+            disabled={!input.username || !input.password}
           >
             Masuk
           </button>
@@ -162,3 +173,4 @@ const LoginForm = () => {
 };
 
 export default LoginForm;
+
