@@ -103,7 +103,8 @@ function App() {
       {/* Snack Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-8 max-w-[900px] mx-auto">
         {data.length > 0 && data.map((item) => (
-          <div key={item.id} className="w-[250px] mx-auto" onClick={() => handleButtonClick(item)}>
+          // onClick={() => handleButtonClick(item)}
+          <div key={item.id} className="w-[250px] mx-auto" >  
             <div className="relative mb-4">
               <img
                 src={`${baseURL}${item.image_URL}`}

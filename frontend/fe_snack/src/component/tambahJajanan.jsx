@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { Upload } from 'lucide-react';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import Cookies from 'js-cookie';
 import Header from './Header';
+import AdminHeader from './AdminHeader';
 import axios from 'axios';
 
 function TambahJajanan() {
   const [selectedPrice, setSelectedPrice] = useState("");
   const [customPrice, setCustomPrice] = useState("");
   const [selectedType, setSelectedType] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
   const [input, setInput] = useState({
     name: "",
@@ -20,9 +22,23 @@ function TambahJajanan() {
     location: "",
     rating: 0,
     type: "",
-    userId: jwtDecode(Cookies.get("token")).id,
+    userId: "",
     image: "",
   });
+
+  useEffect(() => {
+    const token = Cookies.get("token");
+    if (token) {
+      const decodedToken = jwtDecode(token);
+      setIsAdmin(decodedToken.role === 'ADMIN');
+      setInput(prevInput => ({
+        ...prevInput,
+        userId: decodedToken.id
+      }));
+    } else {
+      navigate('/login');
+    }
+  }, [navigate]);
 
   const popUpSuccess = () => {
     const Toast = Swal.mixin({
@@ -117,7 +133,7 @@ function TambahJajanan() {
 
       console.log("response:", response.data);
       popUpSuccess();
-      navigate('/dashboard');
+      navigate(isAdmin ? '/admin' : '/dashboard');
     } catch (error) {
       console.error("Error creating snack:", error.response?.data || error.message);
       popUpFailed();
@@ -129,7 +145,7 @@ function TambahJajanan() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      {isAdmin ? <AdminHeader /> : <Header />}
 
       <div className="max-w-2xl mx-auto p-4">
         {/* Main Form */}
@@ -179,7 +195,7 @@ function TambahJajanan() {
                     name="price"
                     onClick={() => {
                       setSelectedPrice(price); 
-                      setInput((prevInput) => ({ ...prevInput, price })); // Set langsung ke input
+                      setInput((prevInput) => ({ ...prevInput, price }));
                     }}
                     className={`px-4 py-2 rounded-full border ${
                       selectedPrice === price
@@ -302,3 +318,4 @@ function TambahJajanan() {
 }
 
 export default TambahJajanan;
+

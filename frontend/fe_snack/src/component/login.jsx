@@ -4,6 +4,7 @@ import { UserIcon, LockClosedIcon } from "@heroicons/react/24/solid";
 import { Link, useNavigate } from 'react-router-dom';
 import Cookies from "js-cookie";
 import Swal from "sweetalert2";
+import { jwtDecode } from "jwt-decode";
 
 const LoginForm = () => {
   const [input, setInput] = useState({
@@ -25,7 +26,6 @@ const LoginForm = () => {
     const { username, password } = input;
 
     if (!username || !password) {
-      // Show error notification if fields are empty
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -39,15 +39,17 @@ const LoginForm = () => {
       return;
     }
 
-    // API call to login user
     axios
       .post("http://localhost:8080/api/auth/login", { username, password })
       .then((response) => {
         console.log(response.data);
-        // Set token in cookies
-        Cookies.set("token", response.data.token, { expires: 1 });
+        const token = response.data.token;
+        Cookies.set("token", token, { expires: 1 });
         
-        // Show Toast notification for successful login
+        // Decode the token to get user information
+        const decodedToken = jwtDecode(token);
+        const userRole = decodedToken.role; // Assuming the role is stored in the token
+
         Swal.fire({
           icon: "success",
           title: "Signed in successfully",
@@ -58,12 +60,15 @@ const LoginForm = () => {
           timerProgressBar: true,
         });
 
-        // Redirect to dashboard
-        navigate("/dashboard");
+        // Redirect based on user role
+        if (userRole === "ADMIN") {
+          navigate("/admin");
+        } else {
+          navigate("/dashboard");
+        }
       })
       .catch((error) => {
         console.error(error);
-        // Show Toast notification for failed login
         Swal.fire({
           icon: "error",
           title: "Login failed. Please try again.",

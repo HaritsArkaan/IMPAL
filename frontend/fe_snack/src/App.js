@@ -14,6 +14,7 @@ import Review from './component/Reviewku';
 import Jajananku from './component/jajananku';
 import Favoritku from './component/favoritku';
 import EditJajanan from './component/editJajanan';
+import Admin from './component/admin';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
         <Route path="/jajananku" element={<Jajananku/>} />
         <Route path="/favoritku" element={<Favoritku/>} />
         <Route path="/editjajanan" element={<EditJajanan />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

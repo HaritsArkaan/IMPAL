@@ -1,39 +1,75 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
-import { Upload } from "lucide-react";
-import {jwtDecode} from "jwt-decode";
+import { Upload } from 'lucide-react';
+import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
-import Header from "./Header";
+import AdminHeader from "./AdminHeader";
 import axios from "axios";
 
 function EditJajanan() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [originalUserId, setOriginalUserId] = useState(null);
 
-  // Validasi jika tidak ada state item
   useEffect(() => {
+    const token = Cookies.get("token");
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    const decodedToken = jwtDecode(token);
+    setIsAdmin(decodedToken.role === 'ADMIN');
+
     if (!location.state || !location.state.item) {
       console.error("No item data found in location.state");
-      navigate("/dashboard"); // Redirect ke halaman dashboard
+      navigate(decodedToken.role === 'ADMIN' ? "/admin" : "/dashboard");
+      return;
     }
+
+    const { item } = location.state;
+    setOriginalUserId(item.userId);
+
+    if (decodedToken.role !== 'ADMIN' && decodedToken.id !== item.userId) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: 'You do not have permission to edit this item'
+      });
+      navigate('/dashboard');
+    }
+
+    setInput({
+      name: item.name || "",
+      price: item.price || "",
+      seller: item.seller || "",
+      contact: item.contact || "",
+      location: item.location || "",
+      rating: item.rating || 0,
+      type: item.type || "",
+      userId: item.userId,
+      image: "",
+    });
+    setSelectedPrice(item.price || "");
+    setSelectedType(item.type || "");
   }, [location, navigate]);
 
-  // Ambil item dari location.state
   const { item } = location.state || { item: {} };
 
   const [selectedPrice, setSelectedPrice] = useState("");
   const [customPrice, setCustomPrice] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [input, setInput] = useState({
-    name: item.name || "",
-    price: item.price || "",
-    seller: item.seller || "",
-    contact: item.contact || "",
-    location: item.location || "",
-    rating: item.rating || 0,
-    type: item.type || "",
-    userId: jwtDecode(Cookies.get("token")).id,
+    name: "",
+    price: "",
+    seller: "",
+    contact: "",
+    location: "",
+    rating: 0,
+    type: "",
+    userId: "",
     image: "",
   });
 
@@ -93,7 +129,7 @@ function EditJajanan() {
 
     const { name, price, seller, contact, location, rating, type, userId, image } = input;
 
-    if (!name || !price || !seller || !contact || !location || !type || !image) {
+    if (!name || !price || !seller || !contact || !location || !type) {
       console.error("All fields are required!");
       alert("Please fill in all fields.");
       return;
@@ -101,7 +137,9 @@ function EditJajanan() {
 
     try {
       const formData = new FormData();
-      formData.append("file", image);
+      if (image) {
+        formData.append("file", image);
+      }
 
       const response = await axios.put(
         `http://localhost:8080/api/snacks/${item.id}`,
@@ -119,14 +157,14 @@ function EditJajanan() {
             location,
             rating,
             type,
-            userId,
+            userId: originalUserId, // Always use the original userId
           },
         }
       );
 
       console.log("response:", response.data);
       popUpSuccess();
-      navigate("/dashboard");
+      navigate(isAdmin ? "/admin" : "/dashboard");
     } catch (error) {
       console.error("Error updating snack:", error.response?.data || error.message);
       popUpFailed();
@@ -137,7 +175,7 @@ function EditJajanan() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      <AdminHeader />
 
       <div className="max-w-2xl mx-auto p-4">
         <main>
@@ -186,7 +224,7 @@ function EditJajanan() {
                   name="price"
                   onClick={() => {
                     setSelectedPrice(price); 
-                    setInput((prevInput) => ({ ...prevInput, price })); // Set langsung ke input
+                    setInput((prevInput) => ({ ...prevInput, price }));
                   }}
                   className={`px-4 py-2 rounded-full border ${
                     selectedPrice === price
@@ -227,87 +265,87 @@ function EditJajanan() {
             <label className="block mb-2">Jenis Jajanan</label>
             <p className="text-gray-500 text-sm mb-3">Pilih jenis yang menggambarkan jajananmu!</p>
             <div className="flex flex-wrap gap-3">
-  {["Manis", "Asin", "Pedas", "Lainnya"].map((type) => (
-    <button
-      key={type}
-      name="type"
-      onClick={() => {
-        setSelectedType(type);
-        setInput((prevInput) => ({ ...prevInput, type })); // Set langsung ke input
-      }}
-      className={`px-4 py-2 rounded-full border ${
-        selectedType === type
-          ? "bg-green-500 text-white border-green-500"
-          : "border-gray-300 text-gray-700"
-      }`}
-    >
-      {type}
-    </button>
-  ))}
-</div>
-</div>
+              {["Manis", "Asin", "Pedas", "Lainnya"].map((type) => (
+                <button
+                  key={type}
+                  name="type"
+                  onClick={() => {
+                    setSelectedType(type);
+                    setInput((prevInput) => ({ ...prevInput, type }));
+                  }}
+                  className={`px-4 py-2 rounded-full border ${
+                    selectedType === type
+                      ? "bg-green-500 text-white border-green-500"
+                      : "border-gray-300 text-gray-700"
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+          </div>
 
-{/* Seller Name */}
-<div className="mb-6">
-  <label htmlFor="sellerName" className="block mb-2">
-    Penjual
-  </label>
-  <input
-    id="sellerName"
-    type="text"
-    name="seller"
-    value={input.seller}
-    onChange={handleInput}
-    placeholder="Masukkan nama penjual disini..."
-    className="w-full p-3 rounded-lg bg-green-50 border border-green-100"
-  />
-</div>
+          {/* Seller Name */}
+          <div className="mb-6">
+            <label htmlFor="sellerName" className="block mb-2">
+              Penjual
+            </label>
+            <input
+              id="sellerName"
+              type="text"
+              name="seller"
+              value={input.seller}
+              onChange={handleInput}
+              placeholder="Masukkan nama penjual disini..."
+              className="w-full p-3 rounded-lg bg-green-50 border border-green-100"
+            />
+          </div>
 
-{/* Contact */}
-<div className="mb-6">
-  <label htmlFor="contact" className="block mb-2">
-    Kontak Penjual
-  </label>
-  <input
-    id="contact"
-    type="text"
-    name="contact"
-    value={input.contact}
-    onChange={handleInput}
-    placeholder="Masukkan kontak penjual disini..."
-    className="w-full p-3 rounded-lg bg-green-50 border border-green-100"
-  />
-</div>
+          {/* Contact */}
+          <div className="mb-6">
+            <label htmlFor="contact" className="block mb-2">
+              Kontak Penjual
+            </label>
+            <input
+              id="contact"
+              type="text"
+              name="contact"
+              value={input.contact}
+              onChange={handleInput}
+              placeholder="Masukkan kontak penjual disini..."
+              className="w-full p-3 rounded-lg bg-green-50 border border-green-100"
+            />
+          </div>
 
-{/* Location */}
-<div className="mb-6">
-  <label htmlFor="location" className="block mb-2">
-    Lokasi Jajanan
-  </label>
-  <input
-    id="location"
-    type="text"
-    name="location"
-    value={input.location}
-    onChange={handleInput}
-    placeholder="Masukkan lokasi jajanan disini..."
-    className="w-full p-3 rounded-lg bg-green-50 border border-green-100"
-  />
-</div>
+          {/* Location */}
+          <div className="mb-6">
+            <label htmlFor="location" className="block mb-2">
+              Lokasi Jajanan
+            </label>
+            <input
+              id="location"
+              type="text"
+              name="location"
+              value={input.location}
+              onChange={handleInput}
+              placeholder="Masukkan lokasi jajanan disini..."
+              className="w-full p-3 rounded-lg bg-green-50 border border-green-100"
+            />
+          </div>
 
-{/* Submit Button */}
-<div className="text-center">
-  <button
-    onClick={handleSubmit}
-    className="px-6 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600"
-  >
-    Simpan Perubahan
-  </button>
-</div>
-</main>
-</div>
-</div>
-);
+          {/* Submit Button */}
+          <div className="text-center">
+            <button
+              onClick={handleSubmit}
+              className="px-6 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600"
+            >
+              Simpan Perubahan
+            </button>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
 }
 
 export default EditJajanan;
