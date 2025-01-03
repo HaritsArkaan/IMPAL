@@ -17,16 +17,23 @@ export default function DetailJajanan() {
   const [userRole, setUserRole] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const location = useLocation();
   const { item } = location.state;
   const baseURL = "http://localhost:8080";
 
   const togglePopUp = () => {
+    if (!isLoggedIn) {
+      setError('Silakan login terlebih dahulu untuk menambahkan review');
+      return;
+    }
     setPopUp(!popUp);
   };
 
   const fetchUserFavorites = useCallback(async (token, userId) => {
+    if (!token || !userId) return;
+    
     try {
       const response = await axios.get(`${baseURL}/favorities/user/${userId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -39,13 +46,13 @@ export default function DetailJajanan() {
       }
     } catch (error) {
       console.error('Error fetching favorites:', error);
-      setError('Failed to fetch favorites. Please try again later.');
     }
   }, [baseURL, item.id]);
 
   useEffect(() => {
     const token = Cookies.get('token');
     if (token) {
+      setIsLoggedIn(true);
       try {
         const decodedToken = jwtDecode(token);
         setUserId(decodedToken.id);
@@ -53,7 +60,6 @@ export default function DetailJajanan() {
         fetchUserFavorites(token, decodedToken.id);
       } catch (error) {
         console.error('Error decoding token:', error);
-        setError('Authentication error. Please log in again.');
       }
     }
     setIsLoading(false);
@@ -66,7 +72,6 @@ export default function DetailJajanan() {
         setReview(response.data);
       } catch (error) {
         console.error('Error fetching reviews:', error);
-        setError('Failed to fetch reviews. Please try again later.');
       }
     };
 
@@ -82,12 +87,12 @@ export default function DetailJajanan() {
   const averageRating = calculateAverageRating(review);
 
   const handleAddFavorite = async () => {
-    const token = Cookies.get('token');
-    if (!token || !userId) {
-      setError('You must be logged in to manage favorites.');
+    if (!isLoggedIn) {
+      setError('Silakan login terlebih dahulu untuk menambahkan ke favorit');
       return;
     }
 
+    const token = Cookies.get('token');
     const newFavoriteStatus = !isFavorite;
     setIsFavorite(newFavoriteStatus);
 
@@ -113,19 +118,19 @@ export default function DetailJajanan() {
     } catch (error) {
       console.error('Error updating favorite status:', error);
       setIsFavorite(!newFavoriteStatus);
-      setError('Failed to update favorite status. Please try again.');
+      setError('Gagal mengupdate status favorit. Silakan coba lagi.');
     }
   };
 
   const handleDeleteReview = async (reviewId) => {
     if (userRole !== 'ADMIN') {
-      setError('Only administrators can delete reviews.');
+      setError('Hanya admin yang dapat menghapus review.');
       return;
     }
 
     const token = Cookies.get('token');
     if (!token) {
-      setError('You must be logged in to delete reviews.');
+      setError('Anda harus login untuk menghapus review.');
       return;
     }
 
@@ -136,7 +141,7 @@ export default function DetailJajanan() {
       setReview((prevReviews) => prevReviews.filter((rev) => rev.id !== reviewId));
     } catch (error) {
       console.error('Error deleting review:', error);
-      setError('Failed to delete review. Please try again.');
+      setError('Gagal menghapus review. Silakan coba lagi.');
     }
   };
 
@@ -144,14 +149,15 @@ export default function DetailJajanan() {
     return <div>Loading...</div>;
   }
 
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
   return (
     <div className="min-h-screen bg-white">
       {userRole === 'ADMIN' ? <AdminHeader /> : <Header />}
       <div className="max-w-5xl mx-auto p-4">
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+            {error}
+          </div>
+        )}
         {/* Food Detail Section */}
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-full md:w-1/2">
@@ -165,15 +171,17 @@ export default function DetailJajanan() {
           <div className="w-full md:w-1/2">
             <div className="flex justify-between items-start">
               <h1 className="text-2xl font-bold">{item.name}</h1>
-              <button 
-                className={`p-2 rounded-full hover:bg-gray-100 ${isFavorite ? 'text-red-500' : 'text-[#70AE6E]'}`}
-                onClick={handleAddFavorite}
-              >
-                <Heart className="h-5 w-5" fill={isFavorite ? 'currentColor' : 'none'} />
-              </button>
+              {isLoggedIn && (
+                <button 
+                  className={`p-2 rounded-full hover:bg-gray-100 ${isFavorite ? 'text-red-500' : 'text-[#70AE6E]'}`}
+                  onClick={handleAddFavorite}
+                >
+                  <Heart className="h-5 w-5" fill={isFavorite ? 'currentColor' : 'none'} />
+                </button>
+              )}
             </div>
 
-            {/* Rating Section - Display average rating */}
+            {/* Rating Section */}
             <div className="flex items-center mt-2">
               {[1, 2, 3, 4, 5].map((star) => (
                 <svg
@@ -216,13 +224,17 @@ export default function DetailJajanan() {
                 {item.contact}
               </p>
             </div>
-            <button
-              onClick={togglePopUp}
-              className="w-full mt-6 bg-[#70AE6E] text-lg text-white py-2 px-4 rounded-lg hover:bg-transparent hover:text-[#70AE6E] border hover:border-[#70AE6E] transition duration-300"
-            >
-              Tambahkan Review
-            </button>
-            <PopUpReview show={popUp} onClose={togglePopUp} snackId={item.id || 0} />
+            {isLoggedIn && (
+              <button
+                onClick={togglePopUp}
+                className="w-full mt-6 bg-[#70AE6E] text-lg text-white py-2 px-4 rounded-lg hover:bg-transparent hover:text-[#70AE6E] border hover:border-[#70AE6E] transition duration-300"
+              >
+                Tambahkan Review
+              </button>
+            )}
+            {isLoggedIn && popUp && (
+              <PopUpReview show={popUp} onClose={togglePopUp} snackId={item.id || 0} />
+            )}
           </div>
         </div>
 

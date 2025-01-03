@@ -3,13 +3,14 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Heart, Star } from 'lucide-react';
 import Header from './Header';
+import Cookies from 'js-cookie';
 
 function Dashboard() {
   const [allData, setAllData] = useState([]);
   const [banner, setBanner] = useState(null);
   const [filteredData, setFilteredData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [reviewsData, setReviewsData] = useState({}); // Menyimpan data review untuk setiap jajanan
+  const [reviewsData, setReviewsData] = useState({});
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -19,10 +20,9 @@ function Dashboard() {
       .then(response => {
         if (response.data.length > 0) {
           setAllData(response.data);
-          setBanner(response.data[0]); // Always keep first item as banner
-          setFilteredData(response.data); // Initially show all items including banner
+          setBanner(response.data[0]);
+          setFilteredData(response.data);
           
-          // Ambil data review untuk setiap jajanan
           response.data.forEach(item => {
             axios.get(`http://localhost:8080/reviews/statistics/${item.id}`)
               .then(reviewResponse => {
@@ -52,14 +52,12 @@ function Dashboard() {
     const searchQuery = searchParams.get('search')?.toLowerCase();
 
     if (searchQuery) {
-      // Search through all items, including the banner
       const matchingItems = allData.filter(item =>
         item.name.toLowerCase().includes(searchQuery) ||
         (item.seller && item.seller.toLowerCase().includes(searchQuery))
       );
       setFilteredData(matchingItems);
     } else {
-      // No search query, show all items
       setFilteredData(allData);
     }
   }, [location.search, allData]);
@@ -67,15 +65,19 @@ function Dashboard() {
   const baseURL = "http://localhost:8080";
 
   const handleButtonClick = (item) => {
-    navigate('/detailjajanan', { state: { item } });
+    navigate('/detailjajanan', { 
+      state: { 
+        item,
+        isLoggedIn: !!Cookies.get('token')
+      } 
+    });
   };
 
-  // Memperbaiki fungsi formatRating untuk menangani nilai rating yang null atau undefined
   const formatRating = (rating) => {
     if (rating === null || rating === undefined) {
-      return "0.0"; // Default ke rating 0.0 jika tidak ada rating
+      return "0.0";
     }
-    return rating.toFixed(1); // Format dengan 1 angka di belakang koma
+    return rating.toFixed(1);
   };
 
   if (isLoading) {
@@ -96,7 +98,6 @@ function Dashboard() {
     <div className="min-h-screen bg-white">
       <Header />
       <div className="mx-20">
-        {/* Hero Section - Always shows first item */}
         {banner && (
           <section className="relative h-[400px] w-full rounded-lg mt-6" onClick={() => handleButtonClick(banner)}>
             <img
@@ -116,7 +117,6 @@ function Dashboard() {
           </section>
         )}
 
-        {/* Jajanan Section - Shows filtered results including banner if it matches */}
         <section className="py-8">
           <h2 className="mb-6 text-center text-2xl font-bold text-green-600">JAJANAN</h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -134,7 +134,6 @@ function Dashboard() {
                     <h3 className="font-semibold">{item.name}</h3>
                     <div className="flex items-center gap-1">
                       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      {/* Menampilkan rating dan jumlah review dengan format angka satu desimal */}
                       <span className="text-sm">
                         {formatRating(reviewsData[item.id]?.averageRating)} ({reviewsData[item.id]?.reviewCount ?? 0})
                       </span>
@@ -153,3 +152,4 @@ function Dashboard() {
 }
 
 export default Dashboard;
+
