@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import Risol from "../photo/risol.jpg";
 import axios from 'axios';
-import { Heart } from 'lucide-react';
+import { Heart, Trash2 } from 'lucide-react';
 import PopUpReview from './popUpReview';
 import Header from './Header';
+import AdminHeader from './AdminHeader';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 
@@ -14,6 +14,7 @@ export default function DetailJajanan() {
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoriteId, setFavoriteId] = useState(null);
   const [userId, setUserId] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -48,6 +49,7 @@ export default function DetailJajanan() {
       try {
         const decodedToken = jwtDecode(token);
         setUserId(decodedToken.id);
+        setUserRole(decodedToken.role);
         fetchUserFavorites(token, decodedToken.id);
       } catch (error) {
         console.error('Error decoding token:', error);
@@ -91,16 +93,14 @@ export default function DetailJajanan() {
 
     try {
       if (newFavoriteStatus) {
-        // Menambahkan favorit
         const response = await axios.post(`${baseURL}/favorities`, {
           userId: userId,
           snackId: item.id
         }, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        setFavoriteId(response.data.id); // Simpan favoriteId yang dikembalikan dari API
+        setFavoriteId(response.data.id);
       } else {
-        // Menghapus favorit
         if (!favoriteId) {
           setError('Favorite ID not found. Unable to delete.');
           return;
@@ -108,12 +108,35 @@ export default function DetailJajanan() {
         await axios.delete(`${baseURL}/favorities/${favoriteId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        setFavoriteId(null); // Hapus favoriteId setelah berhasil menghapus
+        setFavoriteId(null);
       }
     } catch (error) {
       console.error('Error updating favorite status:', error);
-      setIsFavorite(!newFavoriteStatus); // Revert state on error
+      setIsFavorite(!newFavoriteStatus);
       setError('Failed to update favorite status. Please try again.');
+    }
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    if (userRole !== 'ADMIN') {
+      setError('Only administrators can delete reviews.');
+      return;
+    }
+
+    const token = Cookies.get('token');
+    if (!token) {
+      setError('You must be logged in to delete reviews.');
+      return;
+    }
+
+    try {
+      await axios.delete(`${baseURL}/reviews/${reviewId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setReview((prevReviews) => prevReviews.filter((rev) => rev.id !== reviewId));
+    } catch (error) {
+      console.error('Error deleting review:', error);
+      setError('Failed to delete review. Please try again.');
     }
   };
 
@@ -127,7 +150,7 @@ export default function DetailJajanan() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      {userRole === 'ADMIN' ? <AdminHeader /> : <Header />}
       <div className="max-w-5xl mx-auto p-4">
         {/* Food Detail Section */}
         <div className="flex flex-col md:flex-row gap-6">
@@ -208,7 +231,7 @@ export default function DetailJajanan() {
           <h2 className="text-xl font-bold">Reviews</h2>
           <div className="space-y-4 mt-4">
             {review.map((rev) => (
-              <div key={rev.id} className="bg-gray-100 p-4 rounded-lg">
+              <div key={rev.id} className="bg-gray-100 p-4 rounded-lg relative">
                 <div className="flex items-center mb-2">
                   <img
                     src="/profile.jpg"
@@ -230,6 +253,14 @@ export default function DetailJajanan() {
                       ))}
                     </div>
                   </div>
+                  {userRole === 'ADMIN' && (
+                    <button
+                      onClick={() => handleDeleteReview(rev.id)}
+                      className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  )}
                 </div>
                 <p className="text-gray-600">{rev.content}</p>
               </div>
@@ -240,3 +271,4 @@ export default function DetailJajanan() {
     </div>
   );
 }
+

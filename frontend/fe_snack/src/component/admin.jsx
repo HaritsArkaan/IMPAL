@@ -128,6 +128,10 @@ function AdminDashboard() {
     });
   };
 
+  const handleButtonClick = (item) => {
+    navigate('/detailjajanan', { state: { item } });
+  };
+
   const formatRating = (rating) => {
     if (rating === null || rating === undefined) {
       return "0.0";
@@ -171,6 +175,7 @@ function AdminDashboard() {
                   src={`${baseURL}${item.image_URL}`}
                   alt={item.name}
                   className="w-full h-full object-cover"
+                  onClick={() => handleButtonClick(item)}
                 />
                 <div className="absolute top-2 right-2 flex gap-2">
                   <button
