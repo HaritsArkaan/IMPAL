@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import Swal from 'sweetalert2';
 import { Heart, Star } from 'lucide-react';
 import Header from './Header';
@@ -18,6 +18,12 @@ function Favoritku() {
     const fetchFavorites = async () => {
       try {
         const token = Cookies.get("token");
+        if (!token) {
+          setError("Authentication required");
+          setIsLoading(false);
+          return;
+        }
+
         const userId = jwtDecode(token).id;
 
         // Fetch favorites from API
@@ -31,15 +37,26 @@ function Favoritku() {
         // Fetch snack details for each favorite
         const snackDetails = await Promise.all(
           favoriteData.map(async (favorite) => {
-            const snackResponse = await axios.get(`${baseURL}/api/snacks/get/${favorite.snackId}`);
-            return { ...snackResponse.data, favoriteId: favorite.id }; // Include favorite ID
+            try {
+              // Fix: Remove the colon from the URL
+              const snackResponse = await axios.get(`${baseURL}/api/snacks/get/${favorite.snackId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              return { ...snackResponse.data, favoriteId: favorite.id }; // Include favorite ID
+            } catch (error) {
+              console.error(`Error fetching snack ${favorite.snackId}:`, error);
+              // Return null for failed requests
+              return null;
+            }
           })
         );
 
-        setFavoriteItems(snackDetails);
+        // Filter out any null results from failed requests
+        const validSnackDetails = snackDetails.filter(item => item !== null);
+        setFavoriteItems(validSnackDetails);
 
-        // Initialize liked items
-        const initialLikedItems = new Set(snackDetails.map((_, index) => index));
+        // Initialize liked items only for valid items
+        const initialLikedItems = new Set(validSnackDetails.map((_, index) => index));
         setLikedItems(initialLikedItems);
       } catch (err) {
         console.error("Error fetching favorites:", err);
@@ -68,9 +85,14 @@ function Favoritku() {
       }).then(async (result) => {
         if (result.isConfirmed) {
           try {
+            const token = Cookies.get("token");
+            if (!token) {
+              throw new Error("Authentication required");
+            }
+
             // Perform delete operation
             await axios.delete(`${baseURL}/favorities/${item.favoriteId}`, {
-              headers: { Authorization: `Bearer ${Cookies.get("token")}` },
+              headers: { Authorization: `Bearer ${token}` },
             });
 
             // Update state
@@ -90,45 +112,61 @@ function Favoritku() {
             });
           } catch (err) {
             console.error("Error removing favorite:", err);
-            setError("Failed to remove favorite. Please try again.");
+            Swal.fire({
+              title: "Error!",
+              text: "Failed to remove favorite. Please try again.",
+              icon: "error",
+            });
           }
         }
       });
-    } else {
-      console.warn("Adding to favorites is not implemented yet.");
     }
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-white">
+        <Header />
+        <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+          <div className="text-center">Loading...</div>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return (
+      <div className="min-h-screen bg-white">
+        <Header />
+        <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+          <div className="text-center text-red-500">{error}</div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-white">
       <Header />
 
-      <div className="mx-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Favorites Section */}
         <section className="py-8">
           <h2 className="mb-6 text-center text-2xl font-bold text-green-600">Favoritku</h2>
           {favoriteItems.length === 0 ? (
             <p className="text-center text-gray-500">Tidak ada jajanan favorit.</p>
           ) : (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {favoriteItems.map((item, index) => (
-                <div key={index} className="overflow-hidden rounded-lg shadow-md">
+                <div key={index} className="overflow-hidden rounded-lg shadow-md transition-transform hover:scale-105">
                   <div className="relative aspect-square">
                     <img
                       src={`${baseURL}${item.image_URL}`}
                       alt={item.name}
-                      className="w-full h-full object-cover"
+                      className="h-full w-full object-cover"
                     />
                     <button
-                      className="absolute right-2 top-2 text-white hover:text-white"
+                      className="absolute right-2 top-2 rounded-full bg-white/50 p-2 text-white hover:bg-white/75"
                       onClick={() => toggleLike(index)}
                     >
                       <Heart className={`h-5 w-5 ${likedItems.has(index) ? "fill-current text-red-500" : ""}`} />
@@ -154,3 +192,4 @@ function Favoritku() {
 }
 
 export default Favoritku;
+

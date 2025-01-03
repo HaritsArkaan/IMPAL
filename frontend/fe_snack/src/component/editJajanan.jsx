@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import { Upload } from 'lucide-react';
 import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
+import Header from "./Header";
 import AdminHeader from "./AdminHeader";
 import axios from "axios";
 
@@ -12,6 +13,22 @@ function EditJajanan() {
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [originalUserId, setOriginalUserId] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
+
+  const [selectedPrice, setSelectedPrice] = useState("");
+  const [customPrice, setCustomPrice] = useState("");
+  const [selectedType, setSelectedType] = useState("");
+  const [input, setInput] = useState({
+    name: "",
+    price: "",
+    seller: "",
+    contact: "",
+    location: "",
+    rating: 0,
+    type: "",
+    userId: "",
+    image: "",
+  });
 
   useEffect(() => {
     const token = Cookies.get("token");
@@ -22,6 +39,7 @@ function EditJajanan() {
 
     const decodedToken = jwtDecode(token);
     setIsAdmin(decodedToken.role === 'ADMIN');
+    setCurrentUserId(decodedToken.id);
 
     if (!location.state || !location.state.item) {
       console.error("No item data found in location.state");
@@ -39,6 +57,7 @@ function EditJajanan() {
         text: 'You do not have permission to edit this item'
       });
       navigate('/dashboard');
+      return;
     }
 
     setInput({
@@ -55,23 +74,6 @@ function EditJajanan() {
     setSelectedPrice(item.price || "");
     setSelectedType(item.type || "");
   }, [location, navigate]);
-
-  const { item } = location.state || { item: {} };
-
-  const [selectedPrice, setSelectedPrice] = useState("");
-  const [customPrice, setCustomPrice] = useState("");
-  const [selectedType, setSelectedType] = useState("");
-  const [input, setInput] = useState({
-    name: "",
-    price: "",
-    seller: "",
-    contact: "",
-    location: "",
-    rating: 0,
-    type: "",
-    userId: "",
-    image: "",
-  });
 
   const popUpSuccess = () => {
     const Toast = Swal.mixin({
@@ -127,7 +129,7 @@ function EditJajanan() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const { name, price, seller, contact, location, rating, type, userId, image } = input;
+    const { name, price, seller, contact, location, rating, type, image } = input;
 
     if (!name || !price || !seller || !contact || !location || !type) {
       console.error("All fields are required!");
@@ -142,7 +144,7 @@ function EditJajanan() {
       }
 
       const response = await axios.put(
-        `http://localhost:8080/api/snacks/${item.id}`,
+        `http://localhost:8080/api/snacks/${location.state.item.id}`,
         formData,
         {
           headers: {
@@ -175,7 +177,7 @@ function EditJajanan() {
 
   return (
     <div className="min-h-screen bg-white">
-      <AdminHeader />
+      {isAdmin ? <AdminHeader /> : <Header />}
 
       <div className="max-w-2xl mx-auto p-4">
         <main>
