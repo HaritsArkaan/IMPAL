@@ -13,6 +13,7 @@ function TambahJajanan() {
   const [customPrice, setCustomPrice] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [preview, setPreview] = useState(null);
   const navigate = useNavigate();
   const [input, setInput] = useState({
     name: "",
@@ -85,10 +86,20 @@ function TambahJajanan() {
   };
 
   const handleImageChange = (e) => {
-    setInput({
-      ...input,
-      image: e.target.files[0],
-    });
+    const file = e.target.files[0];
+    if (file) {
+      // Set file ke state
+      setInput((prevInput) => ({
+        ...prevInput,
+        image: file,
+      }));
+      // Buat pratinjau gambar
+      const reader = new FileReader();
+      reader.onload = () => {
+        setPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (event) => {
@@ -159,14 +170,24 @@ function TambahJajanan() {
           {/* Image Upload */}
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 mb-8 text-center">
             <div className="flex flex-col items-center gap-4">
-              <Upload size={48} className="text-gray-400" />
+              {preview ? (
+                <img
+                  src={preview}
+                  alt="Preview"
+                  className="w-full max-w-xs rounded-lg"
+                />
+              ) : (
+                <>
+                  <Upload size={48} className="text-gray-400" />
+                  <p className="text-gray-600">Tambahkan foto jajanan disini</p>
+                </>
+              )}
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
                 className="mt-4"
               />
-              <p className="text-gray-600">Tambahkan foto jajanan disini</p>
             </div>
           </div>
           {/* Snack Name */}
