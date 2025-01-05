@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link , useNavigate} from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, Menu, Filter, PlusCircle, Heart, UserCircle } from 'lucide-react';
 import Cookies from 'js-cookie';
-import { IconUserCircle } from "@tabler/icons-react";
+import Swal from 'sweetalert2';
 
 const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -47,6 +47,39 @@ const Header = () => {
     navigate(`/dashboard?search=${encodeURIComponent(searchQuery)}`);
   };
 
+  const handleProtectedRoute = (route) => {
+  if (!isLoggedIn) {
+    Swal.fire({
+      title: 'Akses Terbatas',
+      text: 'Anda perlu login untuk mengakses fitur ini',
+      icon: 'warning',
+      iconColor: '#70AE6E',
+      showCancelButton: true,
+      confirmButtonColor: '#70AE6E',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Login Sekarang',
+      cancelButtonText: 'Batal',
+      background: '#f0f8ff',
+      backdrop: `
+        rgba(112,174,110,0.4)
+        no-repeat
+      `,
+      customClass: {
+        title: 'text-xl text-gray-800 font-bold',
+        content: 'text-gray-600',
+        confirmButton: 'px-4 py-2 rounded-full transition-colors',
+        cancelButton: 'px-4 py-2 rounded-full transition-colors'
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate('/login');
+      }
+    });
+  } else {
+    navigate(route);
+  }
+};
+
   return (
     <header className="sticky top-0 z-50 w-full bg-white shadow-sm">
       <div className="container mx-auto">
@@ -84,7 +117,7 @@ const Header = () => {
                   onClick={toggleDropdown}
                   className="text-black hover:text-gray-700 rounded-full p-1"
                 >
-                  <IconUserCircle size={55} stroke={1.5} />
+                  <UserCircle size={40} stroke={1.5} />
                 </button>
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
@@ -129,34 +162,40 @@ const Header = () => {
               <div className="absolute z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44">
                 <ul className="py-2 text-sm text-gray-700">
                   <li>
-                    <Link
-                      to="/review"
-                      className="block px-4 py-2 hover:bg-gray-100"
+                    <button
+                      onClick={() => handleProtectedRoute('/review')}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                     >
                       Reviewku
-                    </Link>
+                    </button>
                   </li>
                   <li>
-                    <Link
-                      to="/jajananku"
-                      className="block px-4 py-2 hover:bg-gray-100"
+                    <button
+                      onClick={() => handleProtectedRoute('/jajananku')}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                     >
                       Jajanku
-                    </Link>
+                    </button>
                   </li>
                 </ul>
               </div>
             )}
           </div>
 
-          <Link to="/add" className="flex items-center space-x-1">
+          <button 
+            onClick={() => handleProtectedRoute('/add')} 
+            className="flex items-center space-x-1"
+          >
             <PlusCircle className="h-4 w-4" />
             <span className="text-sm">Tambah Jajanan</span>
-          </Link>
-          <Link to="/favoritku" className="flex items-center space-x-1">
+          </button>
+          <button 
+            onClick={() => handleProtectedRoute('/favoritku')} 
+            className="flex items-center space-x-1"
+          >
             <Heart className="h-4 w-4" />
             <span className="text-sm">Favoritku</span>
-          </Link>
+          </button>
         </nav>
       </div>
     </header>
