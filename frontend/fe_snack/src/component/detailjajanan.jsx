@@ -270,7 +270,7 @@ export default function DetailJajanan() {
                     className="w-10 h-10 rounded-full mr-4"
                   />
                   <div>
-                    <h3 className="text-lg font-semibold">{usernames[rev.userId] || 'Unknown User'}</h3>
+                    <h3 className="text-lg font-semibold">{usernames[rev.userId] || 'Deleted User'}</h3>
                     <div className="flex items-center">
                       {[...Array(rev.rating)].map((_, index) => (
                         <svg
