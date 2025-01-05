@@ -34,22 +34,33 @@ function Favoritku() {
         // Example response: [{ id: 7, userId: 7, snackId: 5 }]
         const favoriteData = response.data;
 
-        // Fetch snack details for each favorite
-        const snackDetails = await Promise.all(
-          favoriteData.map(async (favorite) => {
-            try {
-              // Fix: Remove the colon from the URL
-              const snackResponse = await axios.get(`${baseURL}/api/snacks/get/${favorite.snackId}`, {
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              return { ...snackResponse.data, favoriteId: favorite.id }; // Include favorite ID
-            } catch (error) {
-              console.error(`Error fetching snack ${favorite.snackId}:`, error);
-              // Return null for failed requests
-              return null;
-            }
-          })
-        );
+        // Fetch snack details and review statistics
+      const snackDetails = await Promise.all(
+        favoriteData.map(async (favorite) => {
+          try {
+            // Fetch snack details
+            const snackResponse = await axios.get(`${baseURL}/api/snacks/get/${favorite.snackId}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+
+            // Fetch review statistics
+            const statsResponse = await axios.get(`${baseURL}/reviews/statistics/${favorite.snackId}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+
+            // Merge snack details with review statistics
+            return { 
+              ...snackResponse.data, 
+              rating: statsResponse.data.averageRating, 
+              review: statsResponse.data.reviewCount, 
+              favoriteId: favorite.id 
+            };
+          } catch (error) {
+            console.error(`Error fetching data for snack ${favorite.snackId}:`, error);
+            return null; // Return null for failed requests
+          }
+        })
+      );
 
         // Filter out any null results from failed requests
         const validSnackDetails = snackDetails.filter(item => item !== null);
@@ -177,7 +188,7 @@ function Favoritku() {
                       <h3 className="font-semibold">{item.name}</h3>
                       <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm">{item.rating} ({item.reviews || 0})</span>
+                        <span className="text-sm">{item.rating} ({item.review || 0})</span>
                       </div>
                     </div>
                   </div>
