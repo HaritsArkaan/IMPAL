@@ -18,6 +18,7 @@ export default function DetailJajanan() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [usernames, setUsernames] = useState({}); // Added state for usernames
 
   const location = useLocation();
   const { item } = location.state;
@@ -70,6 +71,12 @@ export default function DetailJajanan() {
       try {
         const response = await axios.get(`${baseURL}/reviews/snack/${item.id}`);
         setReview(response.data);
+        // Fetch usernames for each review
+        response.data.forEach(review => {
+          if (review.userId) {
+            fetchUsername(review.userId);
+          }
+        });
       } catch (error) {
         console.error('Error fetching reviews:', error);
       }
@@ -85,6 +92,18 @@ export default function DetailJajanan() {
   };
 
   const averageRating = calculateAverageRating(review);
+
+  const fetchUsername = async (userId) => { // Added function to fetch usernames
+    try {
+      const response = await axios.get(`${baseURL}/users/${userId}`);
+      setUsernames(prev => ({
+        ...prev,
+        [userId]: response.data.username
+      }));
+    } catch (error) {
+      console.error('Error fetching username:', error);
+    }
+  };
 
   const handleAddFavorite = async () => {
     if (!isLoggedIn) {
@@ -251,7 +270,7 @@ export default function DetailJajanan() {
                     className="w-10 h-10 rounded-full mr-4"
                   />
                   <div>
-                    <h3 className="text-lg font-semibold">{rev.user}</h3>
+                    <h3 className="text-lg font-semibold">{usernames[rev.userId] || 'Unknown User'}</h3>
                     <div className="flex items-center">
                       {[...Array(rev.rating)].map((_, index) => (
                         <svg
