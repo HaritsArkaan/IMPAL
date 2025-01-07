@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { Heart, Star } from 'lucide-react';
+import { Star } from 'lucide-react';
 import Header from './Header';
 import Cookies from 'js-cookie';
 
@@ -14,56 +14,68 @@ function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const baseURL = "http://localhost:8080";
+
+  // Fetch snack data
   useEffect(() => {
     setIsLoading(true);
-    axios.get('http://localhost:8080/api/snacks/get')
+    axios
+      .get(`${baseURL}/api/snacks/get`)
       .then(response => {
         if (response.data.length > 0) {
           setAllData(response.data);
           setBanner(response.data[0]);
           setFilteredData(response.data);
-          
+
           response.data.forEach(item => {
-            axios.get(`http://localhost:8080/reviews/statistics/${item.id}`)
+            axios
+              .get(`${baseURL}/reviews/statistics/${item.id}`)
               .then(reviewResponse => {
                 setReviewsData(prev => ({
                   ...prev,
-                  [item.id]: reviewResponse.data
+                  [item.id]: reviewResponse.data,
                 }));
               })
               .catch(error => {
                 console.error(`Error fetching reviews for ${item.name}:`, error);
               });
           });
+        } else {
+          console.warn("No snacks found from API.");
         }
       })
       .catch(error => {
-        console.error(error);
+        console.error("Error fetching snacks:", error);
       })
       .finally(() => {
         setIsLoading(false);
       });
   }, []);
 
+  // Filter data based on search query
   useEffect(() => {
     if (!allData.length) return;
 
     const searchParams = new URLSearchParams(location.search);
-    const searchQuery = searchParams.get('search')?.toLowerCase();
+    const searchQuery = searchParams.get('search');
+
+    console.log("Search Query:", searchQuery); // Debug log to see the search query
 
     if (searchQuery) {
+      const query = searchQuery.toLowerCase();
       const matchingItems = allData.filter(item =>
-        item.name.toLowerCase().includes(searchQuery) ||
-        (item.seller && item.seller.toLowerCase().includes(searchQuery))
+        item.name.toLowerCase().includes(query)
       );
+
+      console.log("Matching Items:", matchingItems); // Debug log to see matching items
+
       setFilteredData(matchingItems);
     } else {
       setFilteredData(allData);
     }
   }, [location.search, allData]);
 
-  const baseURL = "http://localhost:8080";
-
+  // Navigate to detail page
   const handleButtonClick = (item) => {
     navigate('/detailjajanan', { 
       state: { 
@@ -73,6 +85,7 @@ function Dashboard() {
     });
   };
 
+  // Format ratings
   const formatRating = (rating) => {
     if (rating === null || rating === undefined) {
       return "0.0";
@@ -99,7 +112,10 @@ function Dashboard() {
       <Header />
       <div className="mx-20">
         {banner && (
-          <section className="relative h-[400px] w-full rounded-lg mt-6" onClick={() => handleButtonClick(banner)}>
+          <section
+            className="relative h-[400px] w-full rounded-lg mt-6 cursor-pointer"
+            onClick={() => handleButtonClick(banner)}
+          >
             <img
               src={`${baseURL}${banner.image_URL}`}
               alt={banner.name}
@@ -120,29 +136,41 @@ function Dashboard() {
         <section className="py-8">
           <h2 className="mb-6 text-center text-2xl font-bold text-green-600">JAJANAN</h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {filteredData.length > 0 ? filteredData.map((item) => (
-              <div key={item.id} className="overflow-hidden rounded-lg shadow-md cursor-pointer" onClick={() => handleButtonClick(item)}>
-                <div className="relative aspect-square">
-                  <img
-                    src={`${baseURL}${item.image_URL}`}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="p-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">{item.name}</h3>
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm">
-                        {formatRating(reviewsData[item.id]?.averageRating)} ({reviewsData[item.id]?.reviewCount ?? 0})
-                      </span>
+            {filteredData.length > 0 ? (
+              filteredData.map((item) => (
+                <div
+                  key={item.id}
+                  className="overflow-hidden rounded-lg shadow-md cursor-pointer"
+                  onClick={() => handleButtonClick(item)}
+                >
+                  <div className="relative aspect-square">
+                    {item.image_URL ? (
+                      <img
+                        src={`${baseURL}${item.image_URL}`}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                        <span className="text-gray-500">No Image</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold">{item.name}</h3>
+                      <div className="flex items-center gap-1">
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <span className="text-sm">
+                          {formatRating(reviewsData[item.id]?.averageRating)} ({reviewsData[item.id]?.reviewCount ?? 0})
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )) : (
-              <p className="col-span-3 text-center text-gray-500">No results found</p>
+              ))
+            ) : (
+              <p className="col-span-3 text-center text-gray-500">No snacks found</p>
             )}
           </div>
         </section>
@@ -152,4 +180,3 @@ function Dashboard() {
 }
 
 export default Dashboard;
-

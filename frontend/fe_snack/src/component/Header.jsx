@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Search, Menu, Filter, PlusCircle, Heart, UserCircle } from 'lucide-react';
 import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
+import axios from 'axios';
 
 const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -42,10 +43,11 @@ const Header = () => {
     window.location.href = '/dashboard';
   };
 
-  const handleSearch = (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
     navigate(`/dashboard?search=${encodeURIComponent(searchQuery)}`);
   };
+  
 
   const handleProtectedRoute = (route) => {
   if (!isLoggedIn) {

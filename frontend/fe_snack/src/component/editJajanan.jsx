@@ -1,80 +1,42 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
-import { Upload } from 'lucide-react';
-import { jwtDecode } from "jwt-decode";
+import { Upload } from "lucide-react";
+import {jwtDecode} from "jwt-decode";
 import Cookies from "js-cookie";
 import Header from "./Header";
-import AdminHeader from "./AdminHeader";
 import axios from "axios";
-
 function EditJajanan() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [originalUserId, setOriginalUserId] = useState(null);
-  const [currentUserId, setCurrentUserId] = useState(null);
-
-  const [selectedPrice, setSelectedPrice] = useState("");
-  const [customPrice, setCustomPrice] = useState("");
-  const [selectedType, setSelectedType] = useState("");
-  const [input, setInput] = useState({
-    name: "",
-    price: "",
-    seller: "",
-    contact: "",
-    location: "",
-    rating: 0,
-    type: "",
-    userId: "",
-    image: "",
-  });
-
+  // Validasi jika tidak ada state item
   useEffect(() => {
-    const token = Cookies.get("token");
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
-    const decodedToken = jwtDecode(token);
-    setIsAdmin(decodedToken.role === 'ADMIN');
-    setCurrentUserId(decodedToken.id);
-
     if (!location.state || !location.state.item) {
       console.error("No item data found in location.state");
-      navigate(decodedToken.role === 'ADMIN' ? "/admin" : "/dashboard");
-      return;
+      navigate("/dashboard"); // Redirect ke halaman dashboard
     }
-
-    const { item } = location.state;
-    setOriginalUserId(item.userId);
-
-    if (decodedToken.role !== 'ADMIN' && decodedToken.id !== item.userId) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Access Denied',
-        text: 'You do not have permission to edit this item'
-      });
-      navigate('/dashboard');
-      return;
-    }
-
-    setInput({
-      name: item.name || "",
-      price: item.price || "",
-      seller: item.seller || "",
-      contact: item.contact || "",
-      location: item.location || "",
-      rating: item.rating || 0,
-      type: item.type || "",
-      userId: item.userId,
-      image: "",
-    });
-    setSelectedPrice(item.price || "");
-    setSelectedType(item.type || "");
   }, [location, navigate]);
-
+  // Ambil item dari location.state
+  const { item } = location.state || { item: {} };
+  const [selectedPrice, setSelectedPrice] = useState(
+    ["5000", "7000", "10000", "15000"].includes(String(item.price)) ? String(item.price) : "custom"
+  );
+  const [customPrice, setCustomPrice] = useState(
+    ["5000", "7000", "10000", "15000"].includes(String(item.price)) ? "" : String(item.price)
+  );
+  
+  const [selectedType, setSelectedType] = useState(item.type || "");
+  const [input, setInput] = useState({
+    name: item.name || "",
+    price: item.price || "",
+    seller: item.seller || "",
+    contact: item.contact || "",
+    location: item.location || "",
+    rating: item.rating || 0,
+    type: item.type || "",
+    userId: jwtDecode(Cookies.get("token")).id,
+    image: "",
+  });
   const popUpSuccess = () => {
     const Toast = Swal.mixin({
       toast: true,
@@ -92,7 +54,6 @@ function EditJajanan() {
       title: "Snack Berhasil Diperbarui",
     });
   };
-
   const popUpFailed = () => {
     const Toast = Swal.mixin({
       toast: true,
@@ -111,40 +72,31 @@ function EditJajanan() {
       text: "Pastikan ukuran file kurang dari 10MB",
     });
   };
-
   const handleInput = (e) => {
     setInput({
       ...input,
       [e.target.name]: e.target.value,
     });
   };
-
   const handleImageChange = (e) => {
     setInput({
       ...input,
       image: e.target.files[0],
     });
   };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-    const { name, price, seller, contact, location, rating, type, image } = input;
-
-    if (!name || !price || !seller || !contact || !location || !type) {
+    const { name, price, seller, contact, location, rating, type, userId, image } = input;
+    if (!name || !price || !seller || !contact || !location || !type || !image) {
       console.error("All fields are required!");
       alert("Please fill in all fields.");
       return;
     }
-
     try {
       const formData = new FormData();
-      if (image) {
-        formData.append("file", image);
-      }
-
+      formData.append("file", image);
       const response = await axios.put(
-        `http://localhost:8080/api/snacks/${location.state.item.id}`,
+        `http://localhost:8080/api/snacks/${item.id}`,
         formData,
         {
           headers: {
@@ -159,27 +111,24 @@ function EditJajanan() {
             location,
             rating,
             type,
-            userId: originalUserId, // Always use the original userId
+            userId,
           },
         }
       );
-
       console.log("response:", response.data);
       popUpSuccess();
-      navigate(isAdmin ? "/admin" : "/dashboard");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Error updating snack:", error.response?.data || error.message);
       popUpFailed();
     }
   };
-
   const primaryColor = "rgb(112, 174, 110)";
-
   return (
     <div className="min-h-screen bg-white">
-      {isAdmin ? <AdminHeader /> : <Header />}
-
+      <Header />
       <div className="max-w-2xl mx-auto p-4">
+        {/* Main Form */}
         <main>
           <h1
             className="text-3xl font-semibold text-center mb-8"
@@ -187,6 +136,7 @@ function EditJajanan() {
           >
             Edit Jajanan
           </h1>
+          {/* Image Upload */}
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 mb-8 text-center">
             <div className="flex flex-col items-center gap-4">
               <Upload size={48} className="text-gray-400" />
@@ -199,8 +149,7 @@ function EditJajanan() {
               <p className="text-gray-600">Tambahkan foto jajanan disini</p>
             </div>
           </div>
-
-          {/* Nama Jajanan */}
+          {/* Snack Name */}
           <div className="mb-6">
             <label htmlFor="snackName" className="block mb-2">
               Nama Jajanan <span className="text-gray-400 text-sm">0/100</span>
@@ -226,7 +175,7 @@ function EditJajanan() {
                   name="price"
                   onClick={() => {
                     setSelectedPrice(price); 
-                    setInput((prevInput) => ({ ...prevInput, price }));
+                    setInput((prevInput) => ({ ...prevInput, price })); // Set langsung ke input
                   }}
                   className={`px-4 py-2 rounded-full border ${
                     selectedPrice === price
@@ -273,7 +222,7 @@ function EditJajanan() {
                   name="type"
                   onClick={() => {
                     setSelectedType(type);
-                    setInput((prevInput) => ({ ...prevInput, type }));
+                    setInput((prevInput) => ({ ...prevInput, type })); // Set langsung ke input
                   }}
                   className={`px-4 py-2 rounded-full border ${
                     selectedType === type
@@ -286,27 +235,40 @@ function EditJajanan() {
               ))}
             </div>
           </div>
-
-          {/* Seller Name */}
+          {/* Location */}
+          <div className="mb-6">
+            <label htmlFor="location" className="block mb-2">
+              Alamat Jajanan <span className="text-gray-400 text-sm">0/300</span>
+            </label>
+            <textarea
+              id="location"
+              name="location"
+              value={input.location}
+              onChange={handleInput}
+              placeholder="Masukkan lokasi jajanan disini..."
+              className="w-full p-3 rounded-lg bg-green-50 border border-green-100 min-h-[100px]"
+              maxLength={300}
+            />
+          </div>
+          {/* Seller */}
           <div className="mb-6">
             <label htmlFor="sellerName" className="block mb-2">
-              Penjual
+            Penjual Jajanan <span className="text-gray-400 text-sm">0/300</span>
             </label>
-            <input
+            <textarea
               id="sellerName"
-              type="text"
               name="seller"
               value={input.seller}
               onChange={handleInput}
               placeholder="Masukkan nama penjual disini..."
-              className="w-full p-3 rounded-lg bg-green-50 border border-green-100"
+              className="w-full p-3 rounded-lg bg-green-50 border border-green-100 min-h-[100px]"
+              maxLength={300}
             />
           </div>
-
           {/* Contact */}
-          <div className="mb-6">
+          <div className="mb-8">
             <label htmlFor="contact" className="block mb-2">
-              Kontak Penjual
+              Kontak Jajanan <span className="text-gray-400 text-sm">0/300</span>
             </label>
             <input
               id="contact"
@@ -316,25 +278,10 @@ function EditJajanan() {
               onChange={handleInput}
               placeholder="Masukkan kontak penjual disini..."
               className="w-full p-3 rounded-lg bg-green-50 border border-green-100"
+              maxLength={300}
             />
           </div>
-
-          {/* Location */}
-          <div className="mb-6">
-            <label htmlFor="location" className="block mb-2">
-              Lokasi Jajanan
-            </label>
-            <input
-              id="location"
-              type="text"
-              name="location"
-              value={input.location}
-              onChange={handleInput}
-              placeholder="Masukkan lokasi jajanan disini..."
-              className="w-full p-3 rounded-lg bg-green-50 border border-green-100"
-            />
-          </div>
-
+          
           {/* Submit Button */}
           <div className="text-center">
             <button
@@ -349,6 +296,4 @@ function EditJajanan() {
     </div>
   );
 }
-
 export default EditJajanan;
-
