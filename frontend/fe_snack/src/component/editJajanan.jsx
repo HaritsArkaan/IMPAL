@@ -12,12 +12,19 @@ function EditJajanan() {
   const navigate = useNavigate();
   const location = useLocation();
   const [userRole, setUserRole] = useState(null);
+  const [previewImage, setPreviewImage] = useState(""); // Untuk preview image
 
   // Validasi jika tidak ada state item
   useEffect(() => {
     if (!location.state || !location.state.item) {
       console.error("No item data found in location.state");
       navigate("/dashboard"); // Redirect ke halaman dashboard
+    }
+
+    // Set initial preview image jika ada
+    if (location.state && location.state.item) {
+      const { item } = location.state;
+      setPreviewImage(item.image_URL ? `http://localhost:8080${item.image_URL}` : "");
     }
 
     // Check user role
@@ -91,11 +98,22 @@ function EditJajanan() {
     });
   };
   const handleImageChange = (e) => {
-    setInput({
-      ...input,
-      image: e.target.files[0],
-    });
+    const file = e.target.files[0];
+    if (file) {
+      setInput({
+        ...input,
+        image: file,
+      });
+
+      // Update preview image
+      const reader = new FileReader();
+      reader.onload = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     const { name, price, seller, contact, location, rating, type, userId, image } = input;
@@ -151,7 +169,17 @@ function EditJajanan() {
           {/* Image Upload */}
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 mb-8 text-center">
             <div className="flex flex-col items-center gap-4">
-              <Upload size={48} className="text-gray-400" />
+              {previewImage && (
+                <img
+                  src={previewImage}
+                  alt="Preview"
+                  className="w-full max-w-xs rounded-lg"
+                  onError={(e) => {
+                    console.error("Error loading image:", e);
+                    e.target.src = ""; // Set to default image or leave empty
+                  }}
+                />
+              )}
               <input
                 type="file"
                 accept="image/*"
