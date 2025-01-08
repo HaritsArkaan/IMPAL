@@ -162,7 +162,7 @@ function JajananKu() {
             <h2 className="text-xl font-semibold text-gray-600 mb-2">Belum Ada Jajanan</h2>
             <p className="text-gray-500 mb-6">Anda belum menambahkan jajanan apapun.</p>
             <button
-              onClick={() => navigate('/tambahjajanan')}
+              onClick={() => navigate('/add')}
               className="bg-[#70AE6E] text-white px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-[#5c9a5a] transition-colors duration-300"
             >
               <Plus className="w-5 h-5" />

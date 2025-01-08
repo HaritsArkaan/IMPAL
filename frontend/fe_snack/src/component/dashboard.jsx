@@ -43,7 +43,6 @@ function Dashboard() {
           if (searchQuery) {
             const filtered = response.data.filter(item => 
               item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              item.seller?.toLowerCase().includes(searchQuery.toLowerCase()) ||
               item.type.toLowerCase().includes(searchQuery.toLowerCase())
             );
             setFilteredItems(filtered);

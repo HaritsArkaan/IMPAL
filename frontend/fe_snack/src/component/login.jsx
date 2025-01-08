@@ -5,12 +5,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import Cookies from "js-cookie";
 import Swal from "sweetalert2";
 import { jwtDecode } from "jwt-decode";
+import FloatingHomeButton from "./FloatingHomeButton";
 
 const LoginForm = () => {
   const [input, setInput] = useState({
     username: "",
     password: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -21,15 +23,15 @@ const LoginForm = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const { username, password } = input;
 
     if (!username || !password) {
       Swal.fire({
         icon: "error",
-        title: "Error",
-        text: "Username and password are required",
+        title: "Oops...",
+        text: "Username dan password diperlukan",
         toast: true,
         position: "top-end",
         showConfirmButton: false,
@@ -39,139 +41,137 @@ const LoginForm = () => {
       return;
     }
 
-    axios
-      .post("http://localhost:8080/api/auth/login", { username, password })
-      .then((response) => {
-        console.log(response.data);
-        const token = response.data.token;
-        Cookies.set("token", token, { expires: 1 });
-        
-        // Decode the token to get user information
-        const decodedToken = jwtDecode(token);
-        const userRole = decodedToken.role; // Assuming the role is stored in the token
+    setIsLoading(true);
 
-        Swal.fire({
-          icon: "success",
-          title: "Signed in successfully",
-          toast: true,
-          position: "top-end",
-          showConfirmButton: false,
-          timer: 3000,
-          timerProgressBar: true,
-        });
+    try {
+      const response = await axios.post("http://localhost:8080/api/auth/login", { username, password });
+      const token = response.data.token;
+      Cookies.set("token", token, { expires: 1 });
+      
+      const decodedToken = jwtDecode(token);
+      const userRole = decodedToken.role;
 
-        // Redirect based on user role
-        if (userRole === "ADMIN") {
-          navigate("/admin");
-        } else {
-          navigate("/dashboard");
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        Swal.fire({
-          icon: "error",
-          title: "Login failed. Please try again.",
-          toast: true,
-          position: "top-end",
-          showConfirmButton: false,
-          timer: 3000,
-          timerProgressBar: true,
-        });
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil masuk!",
+        text: "Selamat datang kembali!",
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       });
+
+      if (userRole === "ADMIN") {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        icon: "error",
+        title: "Login gagal",
+        text: "Username atau password salah",
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-[#FFC3BE] via-[#FFEBD4] to-[#BED1BD] font-poppins">
-      <div className="absolute top-6 left-6">
-        <img
-          src="/logo.jpg"
-          alt="Logo"
-          className="w-100 h-100 object-contain mix-blend-multiply"
-        />
-      </div>
-      <div className="bg-white/40 backdrop-blur-[40px] rounded-3xl shadow-lg p-10 w-[28rem] h-auto">
-        <form onSubmit={handleSubmit}>
-          {/* Nama Pengguna */}
-          <div className="mb-6 pt-14">
-            <label
-              htmlFor="username"
-              className="block text-sm font-medium text-gray-600 mb-2"
-            >
-              Nama Pengguna
-            </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-3 flex items-center">
-                <UserIcon className="h-5 w-5 text-gray-500" />
-              </span>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                onChange={handleInput}
-                value={input.username}
-                placeholder="Nama Pengguna"
-                className="w-full bg-[#D1C5C5] rounded-md pl-10 py-2 text-gray-800 focus:outline-none focus:ring focus:ring-pink-300"
-                required
-              />
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-[#FFC3BE] via-[#FFEBD4] to-[#BED1BD]">
+      <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+      
+      <FloatingHomeButton />
+
+      <div className="flex justify-center items-center min-h-screen px-4">
+        <div className="relative bg-white/30 backdrop-blur-md rounded-3xl shadow-2xl p-8 w-full max-w-md
+          transform transition-all duration-500 hover:shadow-[0_20px_50px_rgba(8,_112,_184,_0.7)]">
+          <div className="absolute inset-0 bg-white/40 rounded-3xl backdrop-blur-sm -z-10"></div>
+          
+          <h2 className="text-2xl font-bold text-gray-800 text-center mb-8">
+            Selamat Datang Kembali!
+          </h2>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <div className="relative group">
+                <span className="absolute inset-y-0 left-3 flex items-center transition-transform duration-300 group-focus-within:scale-110">
+                  <UserIcon className="h-5 w-5 text-gray-500 group-focus-within:text-green-500" />
+                </span>
+                <input
+                  type="text"
+                  id="username"
+                  name="username"
+                  onChange={handleInput}
+                  value={input.username}
+                  placeholder="Nama Pengguna"
+                  className="w-full bg-white/70 rounded-xl pl-10 pr-4 py-3 text-gray-800 
+                    placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500
+                    transition-all duration-300"
+                  required
+                />
+              </div>
+
+              <div className="relative group">
+                <span className="absolute inset-y-0 left-3 flex items-center transition-transform duration-300 group-focus-within:scale-110">
+                  <LockClosedIcon className="h-5 w-5 text-gray-500 group-focus-within:text-green-500" />
+                </span>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  onChange={handleInput}
+                  value={input.password}
+                  placeholder="Kata Sandi"
+                  className="w-full bg-white/70 rounded-xl pl-10 pr-4 py-3 text-gray-800 
+                    placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500
+                    transition-all duration-300"
+                  required
+                />
+              </div>
             </div>
+
+            <button
+              type="submit"
+              disabled={isLoading || !input.username || !input.password}
+              className={`w-full rounded-xl py-3 text-white font-medium
+                transition-all duration-300 transform hover:translate-y-[-2px]
+                ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 
+                  'bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 shadow-lg hover:shadow-green-500/30'
+                }`}
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Memproses...
+                </div>
+              ) : 'Masuk'}
+            </button>
+          </form>
+
+          <div className="relative flex items-center justify-center my-8">
+            <div className="border-t border-gray-300 w-full"></div>
+            <span className="bg-white/30 px-4 text-sm text-gray-500 absolute">atau</span>
           </div>
 
-          {/* Kata Sandi */}
-          <div className="mb-6">
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-600 mb-2"
+          <Link to="/register">
+            <button
+              type="button"
+              className="w-full border-2 border-green-500 text-green-600 rounded-xl py-3 
+                hover:bg-green-500 hover:text-white transition-all duration-300 transform hover:translate-y-[-2px]
+                shadow-lg hover:shadow-green-500/30"
             >
-              Kata Sandi
-            </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-3 flex items-center">
-                <LockClosedIcon className="h-5 w-5 text-gray-500" />
-              </span>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                onChange={handleInput}
-                value={input.password}
-                placeholder="Kata Sandi"
-                className="w-full bg-[#D1C5C5] rounded-md pl-10 py-2 text-gray-800 focus:outline-none focus:ring focus:ring-pink-300"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Tombol Masuk */}
-          <button
-            type="submit"
-            className={`w-full ${
-              !input.username || !input.password
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-gray-800 hover:bg-gray-700'
-            } text-white rounded-md py-2 transition text-center items-center justify-center`}
-            disabled={!input.username || !input.password}
-          >
-            Masuk
-          </button>
-        </form>
-
-        {/* Garis Pemisah */}
-        <div className="flex items-center justify-center my-6 text-sm text-gray-400">
-          <div className="border-t border-gray-300 w-full" />
-          <span className="mx-2">atau</span>
-          <div className="border-t border-gray-300 w-full" />
+              Daftar
+            </button>
+          </Link>
         </div>
-
-        {/* Tombol Daftar */}
-        <Link to="/register">
-          <button
-            type="button"
-            className="w-full border border-gray-800 text-gray-800 rounded-md py-2 hover:bg-gray-100 transition"
-          >
-            Daftar
-          </button>
-        </Link>
       </div>
     </div>
   );

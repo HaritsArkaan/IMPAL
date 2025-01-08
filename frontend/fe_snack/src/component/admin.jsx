@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Star, Pencil, Trash2 } from 'lucide-react';
+import { Star, Pencil, Trash2, Plus } from 'lucide-react';
 import AdminHeader from './AdminHeader';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
@@ -128,7 +128,7 @@ function AdminDashboard() {
     });
   };
 
-  const handleButtonClick = (item) => {
+  const handleViewDetails = (item) => {
     navigate('/detailjajanan', { state: { item } });
   };
 
@@ -154,64 +154,73 @@ function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-100">
       <AdminHeader onSearch={handleSearch} />
-      <div className="mx-20">
-        <div className="flex justify-between items-center my-6">
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-green-600">Admin Dashboard</h2>
           <button
             onClick={() => navigate('/add')}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+            className="bg-green-500 text-white px-6 py-3 rounded-full hover:bg-green-600 transition-colors duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-1"
           >
+            <Plus className="mr-2" size={20} />
             Add New Item
           </button>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          {filteredData.length > 0 ? filteredData.map((item) => (
-            <div key={item.id} className="overflow-hidden rounded-lg shadow-md">
-              <div className="relative aspect-square">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredData.map((item) => (
+            <div key={item.id} className="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-300 hover:scale-105">
+              <div 
+                className="relative aspect-square cursor-pointer group"
+                onClick={() => handleViewDetails(item)}
+              >
                 <img
                   src={`${baseURL}${item.image_URL}`}
                   alt={item.name}
-                  className="w-full h-full object-cover"
-                  onClick={() => handleButtonClick(item)}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                 />
-                <div className="absolute top-2 right-2 flex gap-2">
+              </div>
+              <div className="p-4">
+                <h3 className="font-bold text-lg mb-2">{item.name}</h3>
+                <p className="text-gray-600 text-sm mb-2">{item.seller}</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Star className="h-5 w-5 fill-yellow-400 text-yellow-400 mr-1" />
+                    <span className="font-semibold">
+                      {formatRating(reviewsData[item.id]?.averageRating)}
+                    </span>
+                    <span className="text-gray-500 text-sm ml-1">
+                      ({reviewsData[item.id]?.reviewCount ?? 0})
+                    </span>
+                  </div>
+                  <span className="text-green-500 font-semibold">{item.type}</span>
+                </div>
+                <p className="text-gray-600 text-sm mt-2">Price: Rp. {item.price}</p>
+                <p className="text-gray-600 text-sm">Location: {item.location}</p>
+                <div className="mt-4 flex justify-end space-x-2">
                   <button
-                    onClick={() => handleEdit(item)}
-                    className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit(item);
+                    }}
+                    className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
                   >
                     <Pencil className="h-5 w-5" />
                   </button>
                   <button
-                    onClick={() => handleDelete(item.id)}
-                    className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(item.id);
+                    }}
+                    className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
                   >
                     <Trash2 className="h-5 w-5" />
                   </button>
                 </div>
               </div>
-              <div className="p-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold">{item.name}</h3>
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm">
-                      {formatRating(reviewsData[item.id]?.averageRating)} ({reviewsData[item.id]?.reviewCount ?? 0})
-                    </span>
-                  </div>
-                </div>
-                <div className="mt-2">
-                  <p className="text-sm text-gray-600">Harga: Rp. {item.price}</p>
-                  <p className="text-sm text-gray-600">Type: {item.type}</p>
-                  <p className="text-sm text-gray-600">Location: {item.location}</p>
-                </div>
-              </div>
             </div>
-          )) : (
-            <p className="col-span-3 text-center text-gray-500">No items found</p>
-          )}
+          ))}
         </div>
       </div>
     </div>

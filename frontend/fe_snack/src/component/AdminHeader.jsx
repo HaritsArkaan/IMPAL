@@ -118,4 +118,3 @@ const AdminHeader = ({ onSearch }) => {
 };
 
 export default AdminHeader;
-
