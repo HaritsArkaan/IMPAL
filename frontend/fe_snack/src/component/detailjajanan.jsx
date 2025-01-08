@@ -1,12 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { Heart, Trash2 } from 'lucide-react';
+import { Heart, Trash2, MapPin, Phone, Tag, DollarSign, Star, AlertCircle, Clock, Store, Mail } from 'lucide-react';
 import PopUpReview from './popUpReview';
 import Header from './Header';
 import AdminHeader from './AdminHeader';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
+import { motion, AnimatePresence } from 'framer-motion';
+import Swal from 'sweetalert2';
 
 export default function DetailJajanan() {
   const [review, setReview] = useState([]);
@@ -18,7 +20,9 @@ export default function DetailJajanan() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [usernames, setUsernames] = useState({}); // Added state for usernames
+  const [usernames, setUsernames] = useState({});
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [sellerInfo, setSellerInfo] = useState(null);
 
   const location = useLocation();
   const { item } = location.state;
@@ -26,7 +30,13 @@ export default function DetailJajanan() {
 
   const togglePopUp = () => {
     if (!isLoggedIn) {
-      setError('Silakan login terlebih dahulu untuk menambahkan review');
+      Swal.fire({
+        title: 'Login Diperlukan',
+        text: 'Silakan login terlebih dahulu untuk menambahkan review',
+        icon: 'info',
+        confirmButtonColor: '#70AE6E',
+        confirmButtonText: 'OK'
+      });
       return;
     }
     setPopUp(!popUp);
@@ -70,15 +80,34 @@ export default function DetailJajanan() {
     const fetchReviews = async () => {
       try {
         const response = await axios.get(`${baseURL}/reviews/snack/${item.id}`);
-        setReview(response.data);
-        // Fetch usernames for each review
-        response.data.forEach(review => {
-          if (review.userId) {
-            fetchUsername(review.userId);
-          }
-        });
+        if (response.data && Array.isArray(response.data)) {
+          const reviewsWithUsernames = await Promise.all(
+            response.data.map(async (rev) => {
+              try {
+                const userResponse = await axios.get(`${baseURL}/users/${rev.userId}`);
+                return {
+                  ...rev,
+                  username: userResponse.data.username,
+                  createdAt: new Date().toISOString() // Add timestamp if not provided by API
+                };
+              } catch (error) {
+                console.error(`Error fetching user data for review ${rev.id}:`, error);
+                return {
+                  ...rev,
+                  username: 'Deleted User',
+                  createdAt: new Date().toISOString()
+                };
+              }
+            })
+          );
+          setReview(reviewsWithUsernames);
+        } else {
+          console.error('Invalid review data format:', response.data);
+          setReview([]);
+        }
       } catch (error) {
         console.error('Error fetching reviews:', error);
+        setReview([]);
       }
     };
 
@@ -86,28 +115,22 @@ export default function DetailJajanan() {
   }, [baseURL, item.id]);
 
   const calculateAverageRating = (reviews) => {
-    if (reviews.length === 0) return 0;
+    if (!reviews || reviews.length === 0) return 0;
     const totalRating = reviews.reduce((acc, review) => acc + review.rating, 0);
     return (totalRating / reviews.length).toFixed(1);
   };
 
   const averageRating = calculateAverageRating(review);
 
-  const fetchUsername = async (userId) => { // Added function to fetch usernames
-    try {
-      const response = await axios.get(`${baseURL}/users/${userId}`);
-      setUsernames(prev => ({
-        ...prev,
-        [userId]: response.data.username
-      }));
-    } catch (error) {
-      console.error('Error fetching username:', error);
-    }
-  };
-
   const handleAddFavorite = async () => {
     if (!isLoggedIn) {
-      setError('Silakan login terlebih dahulu untuk menambahkan ke favorit');
+      Swal.fire({
+        title: 'Login Diperlukan',
+        text: 'Silakan login terlebih dahulu untuk menambahkan ke favorit',
+        icon: 'info',
+        confirmButtonColor: '#70AE6E',
+        confirmButtonText: 'OK'
+      });
       return;
     }
 
@@ -124,181 +147,361 @@ export default function DetailJajanan() {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         setFavoriteId(response.data.id);
+        Swal.fire({
+          title: 'Berhasil',
+          text: 'Jajanan berhasil ditambahkan ke favorit',
+          icon: 'success',
+          confirmButtonColor: '#70AE6E',
+          timer: 1500,
+          showConfirmButton: false
+        });
       } else {
         if (!favoriteId) {
-          setError('Favorite ID not found. Unable to delete.');
-          return;
+          throw new Error('Favorite ID not found');
         }
         await axios.delete(`${baseURL}/favorities/${favoriteId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         setFavoriteId(null);
+        Swal.fire({
+          title: 'Berhasil',
+          text: 'Jajanan dihapus dari favorit',
+          icon: 'success',
+          confirmButtonColor: '#70AE6E',
+          timer: 1500,
+          showConfirmButton: false
+        });
       }
     } catch (error) {
       console.error('Error updating favorite status:', error);
       setIsFavorite(!newFavoriteStatus);
-      setError('Gagal mengupdate status favorit. Silakan coba lagi.');
+      Swal.fire({
+        title: 'Gagal',
+        text: 'Gagal mengupdate status favorit. Silakan coba lagi.',
+        icon: 'error',
+        confirmButtonColor: '#70AE6E'
+      });
     }
   };
 
   const handleDeleteReview = async (reviewId) => {
     if (userRole !== 'ADMIN') {
-      setError('Hanya admin yang dapat menghapus review.');
+      Swal.fire({
+        title: 'Akses Ditolak',
+        text: 'Hanya admin yang dapat menghapus review',
+        icon: 'error',
+        confirmButtonColor: '#70AE6E'
+      });
       return;
     }
 
     const token = Cookies.get('token');
     if (!token) {
-      setError('Anda harus login untuk menghapus review.');
+      Swal.fire({
+        title: 'Login Diperlukan',
+        text: 'Anda harus login untuk menghapus review',
+        icon: 'error',
+        confirmButtonColor: '#70AE6E'
+      });
       return;
     }
 
     try {
-      await axios.delete(`${baseURL}/reviews/${reviewId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+      await Swal.fire({
+        title: 'Konfirmasi Hapus',
+        text: 'Apakah Anda yakin ingin menghapus review ini?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#70AE6E',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal'
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          await axios.delete(`${baseURL}/reviews/${reviewId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          setReview((prevReviews) => prevReviews.filter((rev) => rev.id !== reviewId));
+          Swal.fire({
+            title: 'Berhasil',
+            text: 'Review berhasil dihapus',
+            icon: 'success',
+            confirmButtonColor: '#70AE6E',
+            timer: 1500,
+            showConfirmButton: false
+          });
+        }
       });
-      setReview((prevReviews) => prevReviews.filter((rev) => rev.id !== reviewId));
     } catch (error) {
       console.error('Error deleting review:', error);
-      setError('Gagal menghapus review. Silakan coba lagi.');
+      Swal.fire({
+        title: 'Gagal',
+        text: 'Gagal menghapus review. Silakan coba lagi.',
+        icon: 'error',
+        confirmButtonColor: '#70AE6E'
+      });
+    }
+  };
+
+  const shareJajanan = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: item.name,
+        text: `Cek jajanan ${item.name} di SnackHunt!`,
+        url: window.location.href
+      }).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        Swal.fire({
+          title: 'Link Tersalin!',
+          text: 'Link jajanan telah disalin ke clipboard',
+          icon: 'success',
+          confirmButtonColor: '#70AE6E',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      });
     }
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-white">
+        {userRole === 'ADMIN' ? <AdminHeader /> : <Header />}
+        <div className="flex justify-center items-center h-[calc(100vh-64px)]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#70AE6E]"></div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-white">
       {userRole === 'ADMIN' ? <AdminHeader /> : <Header />}
-      <div className="max-w-5xl mx-auto p-4">
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-            {error}
-          </div>
-        )}
-        {/* Food Detail Section */}
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="w-full md:w-1/2">
+      
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <AnimatePresence>
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg mb-6 flex items-center gap-3"
+            >
+              <AlertCircle className="w-5 h-5" />
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+          {/* Image Section */}
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="relative overflow-hidden rounded-2xl shadow-lg group"
+          >
             <img
               src={`${baseURL}${item.image_URL}`}
               alt={item.name}
-              className="w-full h-[300px] object-cover rounded-lg"
+              className="w-full h-[400px] lg:h-[500px] object-cover transform group-hover:scale-105 transition-transform duration-700"
+              onClick={() => setSelectedImage(`${baseURL}${item.image_URL}`)}
             />
-          </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+            
+            {/* Image Modal */}
+            {selectedImage && (
+              <div 
+                className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+                onClick={() => setSelectedImage(null)}
+              >
+                <img
+                  src={selectedImage}
+                  alt="Full size"
+                  className="max-w-full max-h-full object-contain"
+                />
+              </div>
+            )}
+          </motion.div>
 
-          <div className="w-full md:w-1/2">
-            <div className="flex justify-between items-start">
-              <h1 className="text-2xl font-bold">{item.name}</h1>
-              {isLoggedIn && userRole !== 'ADMIN' && (
-                <button 
-                  className={`p-2 rounded-full hover:bg-gray-100 ${isFavorite ? 'text-red-500' : 'text-[#70AE6E]'}`}
-                  onClick={handleAddFavorite}
-                >
-                  <Heart className="h-5 w-5" fill={isFavorite ? 'currentColor' : 'none'} />
-                </button>
-              )}
+          {/* Details Section */}
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex flex-col h-full justify-between p-6 bg-white rounded-2xl shadow-lg"
+          >
+            <div>
+              <div className="flex justify-between items-start mb-4">
+                <h1 className="text-3xl font-bold text-gray-800">{item.name}</h1>
+                {isLoggedIn && userRole !== 'ADMIN' && (
+                  <motion.button 
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className={`p-3 rounded-full ${isFavorite ? 'bg-red-50' : 'bg-green-50'} 
+                    hover:shadow-md transition-all duration-300`}
+                    onClick={handleAddFavorite}
+                  >
+                    <Heart 
+                      className={`h-6 w-6 ${isFavorite ? 'text-red-500' : 'text-[#70AE6E]'}`}
+                      fill={isFavorite ? 'currentColor' : 'none'} 
+                    />
+                  </motion.button>
+                )}
+              </div>
+
+              {/* Seller Information */}
+              <div className="bg-green-50 p-4 rounded-xl mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <Store className="w-5 h-5 text-[#70AE6E]" />
+                  Informasi Penjual
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <span className="font-medium">Nama:</span>
+                    <span>{item.seller}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <span className="font-medium">Lokasi:</span>
+                    <span>{item.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <span className="font-medium">Kontak:</span>
+                    <span>{item.contact}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Rating */}
+              <div className="flex items-center gap-2 mb-6">
+                <div className="flex">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`w-5 h-5 ${
+                        star <= averageRating 
+                          ? 'fill-yellow-400 text-yellow-400' 
+                          : 'fill-gray-200 text-gray-200'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-sm font-medium text-gray-600">
+                  {averageRating}/5 ({review.length} reviews)
+                </span>
+              </div>
+
+              {/* Info Cards */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-green-50 p-4 rounded-xl">
+                  <div className="flex items-center gap-2 mb-1">
+                    <DollarSign className="w-5 h-5 text-[#70AE6E]" />
+                    <span className="font-medium text-gray-700">Harga</span>
+                  </div>
+                  <p className="text-[#70AE6E] font-semibold">Rp. {item.price}</p>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-xl">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Tag className="w-5 h-5 text-blue-600" />
+                    <span className="font-medium text-gray-700">Kategori</span>
+                  </div>
+                  <p className="text-blue-600 font-semibold">{item.type}</p>
+                </div>
+              </div>
             </div>
 
-            {/* Rating Section */}
-            <div className="flex items-center mt-2">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <svg
-                  key={star}
-                  className={`w-5 h-5 ${star <= averageRating ? 'text-yellow-400' : 'text-gray-300'}`}
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              ))}
-              <span className="ml-2 text-sm text-gray-500">{averageRating}/5</span>
-            </div>
-
-            {/* Price and Tags */}
-            <div className="mt-4">
-              <span className="text-lg border border-[#70AE6E] mr-2 py-1 px-4 rounded-lg text-[#70AE6E]">
-                Rp. {item.price}
-              </span>
-              <span className="text-lg bg-[#70AE6E] mr-2 py-1 px-4 rounded-lg text-white">
-                {item.type}
-              </span>
-            </div>
-
-            {/* Location and Contact */}
-            <div className="mt-4 space-y-2">
-              <p className="flex items-center text-[#70AE6E]">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                {item.location}
-              </p>
-              <p className="flex items-center text-[#70AE6E]">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 6v12a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2z" />
-                  <path d="M10 16h6" />
-                  <path d="M13 11m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
-                </svg>
-                {item.contact}
-              </p>
-            </div>
+            {/* Add Review Button */}
             {isLoggedIn && userRole !== 'ADMIN' && (
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={togglePopUp}
-                className="w-full mt-6 bg-[#70AE6E] text-lg text-white py-2 px-4 rounded-lg hover:bg-transparent hover:text-[#70AE6E] border hover:border-[#70AE6E] transition duration-300"
+                className="w-full bg-[#70AE6E] text-lg text-white py-3 px-6 rounded-xl
+                         hover:bg-[#5c9a5a] shadow-lg hover:shadow-xl
+                         transition-all duration-300 transform"
               >
                 Tambahkan Review
-              </button>
+              </motion.button>
             )}
-            {isLoggedIn && popUp && (
-              <PopUpReview show={popUp} onClose={togglePopUp} snackId={item.id || 0} />
-            )}
-          </div>
+          </motion.div>
         </div>
 
-        {/* Reviews */}
-        <div className="mt-10">
-          <h2 className="text-xl font-bold">Reviews</h2>
-          <div className="space-y-4 mt-4">
-            {review.map((rev) => (
-              <div key={rev.id} className="bg-gray-100 p-4 rounded-lg relative">
-                <div className="flex items-center mb-2">
-                  <img
-                    src="/profile.jpg"
-                    alt="Profile"
-                    className="w-10 h-10 rounded-full mr-4"
-                  />
-                  <div>
-                    <h3 className="text-lg font-semibold">{usernames[rev.userId] || 'Deleted User'}</h3>
-                    <div className="flex items-center">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <svg
-                        key={star}
-                        className={`w-5 h-5 ${star <= rev.rating ? 'text-yellow-400' : 'text-gray-300'}`}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    ))}
+        {/* Reviews Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl shadow-lg p-8"
+        >
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">Reviews</h2>
+          <div className="space-y-6">
+            <AnimatePresence>
+              {review.map((rev, index) => (
+                <motion.div
+                  key={rev.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-gray-50 p-6 rounded-xl relative group hover:shadow-md transition-all duration-300"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 rounded-full bg-[#70AE6E] flex items-center justify-center text-white text-lg font-semibold">
+                        {(rev.username || 'A')[0].toUpperCase()}
+                      </div>
+                    </div>
+                    <div className="flex-grow">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-gray-800">
+                          {rev.username || 'Anonymous User'}
+                        </h3>
+                        {userRole === 'ADMIN' && (
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => handleDeleteReview(rev.id)}
+                            className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </motion.button>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 my-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`w-4 h-4 ${
+                              star <= rev.rating 
+                                ? 'fill-yellow-400 text-yellow-400' 
+                                : 'fill-gray-200 text-gray-200'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-gray-600 mt-2">{rev.content}</p>
+                      <div className="flex items-center gap-2 mt-3 text-sm text-gray-500">
+                      </div>
                     </div>
                   </div>
-                  {userRole === 'ADMIN' && (
-                    <button
-                      onClick={() => handleDeleteReview(rev.id)}
-                      className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
-                  )}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            
+            {review.length === 0 && (
+              <div className="text-center py-8">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+                  <Star className="w-8 h-8 text-gray-400" />
                 </div>
-                <p className="text-gray-600">{rev.content}</p>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">Belum Ada Review</h3>
+                <p className="text-gray-600">Jadilah yang pertama memberikan review!</p>
               </div>
-            ))}
+            )}
           </div>
-        </div>
+        </motion.div>
       </div>
+
+      {isLoggedIn && popUp && (
+        <PopUpReview show={popUp} onClose={togglePopUp} snackId={item.id || 0} />
+      )}
     </div>
   );
 }

@@ -5,17 +5,29 @@ import { Upload } from "lucide-react";
 import {jwtDecode} from "jwt-decode";
 import Cookies from "js-cookie";
 import Header from "./Header";
+import AdminHeader from "./AdminHeader";
 import axios from "axios";
+
 function EditJajanan() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [userRole, setUserRole] = useState(null);
+
   // Validasi jika tidak ada state item
   useEffect(() => {
     if (!location.state || !location.state.item) {
       console.error("No item data found in location.state");
       navigate("/dashboard"); // Redirect ke halaman dashboard
     }
+
+    // Check user role
+    const token = Cookies.get("token");
+    if (token) {
+      const decodedToken = jwtDecode(token);
+      setUserRole(decodedToken.role);
+    }
   }, [location, navigate]);
+  
   // Ambil item dari location.state
   const { item } = location.state || { item: {} };
   const [selectedPrice, setSelectedPrice] = useState(
@@ -126,7 +138,7 @@ function EditJajanan() {
   const primaryColor = "rgb(112, 174, 110)";
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      {userRole === 'ADMIN' ? <AdminHeader /> : <Header />}
       <div className="max-w-2xl mx-auto p-4">
         {/* Main Form */}
         <main>

@@ -108,14 +108,14 @@ function Profile() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#FFC3BE] via-[#FFEBD4] to-[#BED1BD] font-poppins relative">
-      {/* Logo - Positioned outside the card */}
+      {/* Logo - Positioned outside the card
       <div className="absolute top-6 left-6">
         <img
           src="/logo.jpg"
           alt="Logo"
           className="w-100 h-100 object-contain mix-blend-multiply"
         />
-      </div>
+      </div> */}
 
       {/* Form Container - Centered and Enlarged */}
       <div className="flex justify-center items-center flex-grow">

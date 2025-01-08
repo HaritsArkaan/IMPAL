@@ -1,24 +1,28 @@
 import React, { useEffect, useState } from "react";
-import { IconEdit, IconTrash, IconStar } from "@tabler/icons-react";
+import { Edit2, Trash2, Star, AlertCircle, Plus } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 import Header from './Header';
 import Swal from "sweetalert2";
+import { motion } from "framer-motion";
 
-function App() {
+function JajananKu() {
   const [data, setData] = useState([]);
-  const navigate = useNavigate(); // Use navigate from react-router-dom
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
   const baseURL = "http://localhost:8080";
-  const userId = jwtDecode(Cookies.get("token")).id;
+  const token = Cookies.get("token");
+  const userId = token ? jwtDecode(token).id : null;
 
   useEffect(() => {
     const fetchSnacksAndStats = async () => {
+      setIsLoading(true);
       try {
         const snacksResponse = await axios.get(`${baseURL}/api/snacks/user/${userId}`, {
           headers: {
-            Authorization: `Bearer ${Cookies.get("token")}`
+            Authorization: `Bearer ${token}`
           }
         });
         const snacks = snacksResponse.data;
@@ -36,46 +40,68 @@ function App() {
         setData(combinedData);
       } catch (error) {
         console.error(error);
+        Swal.fire({
+          title: "Error!",
+          text: "Gagal memuat data jajanan.",
+          icon: "error",
+          confirmButtonColor: "#EF4444",
+        });
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchSnacksAndStats();
-  }, [userId]);
+    if (userId) {
+      fetchSnacksAndStats();
+    }
+  }, [userId, token]);
 
-  const handleDelete = (snackId) => {
-    // Menampilkan SweetAlert untuk konfirmasi penghapusan
+  const handleDelete = (snackId, snackName) => {
     Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
+      title: "Hapus Jajanan?",
+      text: `Apakah anda yakin ingin menghapus ${snackName}?`,
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!"
+      confirmButtonColor: "#70AE6E",
+      cancelButtonColor: "#EF4444",
+      confirmButtonText: "Ya, Hapus!",
+      cancelButtonText: "Batal",
+      background: "#ffffff",
+      customClass: {
+        popup: 'rounded-lg',
+        title: 'text-xl font-semibold',
+        confirmButton: 'rounded-lg',
+        cancelButton: 'rounded-lg'
+      }
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          // Mengirim request untuk menghapus snack berdasarkan snackId
           await axios.delete(`${baseURL}/api/snacks/${snackId}`, {
             headers: {
-              Authorization: `Bearer ${Cookies.get("token")}`
+              Authorization: `Bearer ${token}`
             }
           });
-          // Menghapus snack yang sudah dihapus dari state
           setData((prevData) => prevData.filter((item) => item.id !== snackId));
-          // Menampilkan SweetAlert konfirmasi penghapusan berhasil
+          
           Swal.fire({
-            title: "Deleted!",
-            text: "Your snack has been deleted.",
-            icon: "success"
+            title: "Berhasil!",
+            text: "Jajanan telah dihapus.",
+            icon: "success",
+            confirmButtonColor: "#70AE6E",
+            customClass: {
+              popup: 'rounded-lg'
+            }
           });
         } catch (error) {
           console.error("Error deleting snack:", error);
-          // Menampilkan SweetAlert jika ada error dalam penghapusan
           Swal.fire({
-            title: "Failed to delete!",
-            text: "There was an issue deleting the snack.",
-            icon: "error"
+            title: "Gagal menghapus!",
+            text: "Terjadi kesalahan saat menghapus jajanan.",
+            icon: "error",
+            confirmButtonColor: "#EF4444",
+            customClass: {
+              popup: 'rounded-lg'
+            }
           });
         }
       }
@@ -83,58 +109,150 @@ function App() {
   };
 
   const handleEdit = (item) => {
-    // Navigating to /EditJajanan with the selected snackId
-    navigate('/editjajanan', {state: {item}});
+    navigate('/editjajanan', { state: { item } });
   };
 
-  const handleButtonClick = (item) => {
-    navigate('/detailjajanan', { state: { item } });
+  const handleCardClick = (item) => {
+    navigate('/detailjajanan', { 
+      state: { 
+        item,
+        isLoggedIn: !!token
+      } 
+    });
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Header />
+        <div className="flex justify-center items-center h-[calc(100vh-64px)]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#70AE6E]"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
       <Header />
 
-      {/* Title */}
-      <h1 className="text-center text-[40px] font-semibold text-[#70AE6E] drop-shadow-[0_4px_4px_rgba(0,0,0,0.15)] my-12">
-        Jajananku
-      </h1>
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex justify-between items-center mb-12"
+        >
+          <h1 className="text-4xl md:text-5xl font-bold text-[#70AE6E]">
+            Jajananku
+          </h1>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/tambahjajanan')}
+            className="bg-[#70AE6E] text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-[#5c9a5a] transition-colors duration-300"
+          >
+            <Plus className="w-5 h-5" />
+            Tambah Jajanan
+          </motion.button>
+        </motion.div>
 
-      {/* Snack Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-8 max-w-[900px] mx-auto">
-        {data.length > 0 && data.map((item) => (
-          // onClick={() => handleButtonClick(item)}
-          <div key={item.id} className="w-[250px] mx-auto" >  
-            <div className="relative mb-4">
-              <img
-                src={`${baseURL}${item.image_URL}`}
-                alt={item.name}
-                className="w-full h-[300px] object-cover rounded-[15px]"
-              />
-              <button 
-                onClick={() => handleEdit(item)} // Add onClick handler for Edit button
-                className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-[#70AE6E] text-white px-4 py-1 rounded-[8px] flex items-center gap-1 text-sm font-medium">
-                <IconEdit className="w-4 h-4" />
-                Edit Jajanan
-              </button>
-            </div>
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-medium">{item.name}</h2>
-              <button onClick={() => handleDelete(item.id)} className="text-red-500">
-                <IconTrash className="w-6 h-6" />
-              </button>
-            </div>
-            <div className="flex items-center gap-1">
-              <IconStar className="w-5 h-5 fill-[#FFDE32] text-[#FFDE32]" />
-              <span className="text-sm text-[#515151] font-light">
-                {item.stats.averageRating.toFixed(1)} ({item.stats.reviewCount})
-              </span>
-            </div>
+        {data.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-8 text-center">
+            <AlertCircle className="w-16 h-16 text-gray-400 mb-4" />
+            <h2 className="text-xl font-semibold text-gray-600 mb-2">Belum Ada Jajanan</h2>
+            <p className="text-gray-500 mb-6">Anda belum menambahkan jajanan apapun.</p>
+            <button
+              onClick={() => navigate('/tambahjajanan')}
+              className="bg-[#70AE6E] text-white px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-[#5c9a5a] transition-colors duration-300"
+            >
+              <Plus className="w-5 h-5" />
+              Tambah Jajanan Sekarang
+            </button>
           </div>
-        ))}
+        ) : (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
+            {data.map((item, index) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
+              >
+                <div 
+                  className="relative aspect-[4/5] overflow-hidden cursor-pointer"
+                  onClick={() => handleCardClick(item)}
+                >
+                  <img
+                    src={`${baseURL}${item.image_URL}`}
+                    alt={item.name}
+                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <div className="flex flex-col gap-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(item);
+                        }}
+                        className="bg-[#70AE6E] text-white px-6 py-2 rounded-lg flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 hover:bg-[#5c9a5a]"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                        Edit Jajanan
+                      </button>
+                      <span className="text-white text-sm">Klik untuk melihat detail</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-800 group-hover:text-[#70AE6E] transition-colors duration-300">
+                        {item.name}
+                      </h2>
+                      <div className="flex items-center gap-1 mt-1">
+                        <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                        <span className="text-sm text-gray-600">
+                          {item.stats.averageRating.toFixed(1)} ({item.stats.reviewCount} reviews)
+                        </span>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(item.id, item.name);
+                      }}
+                      className="p-2 text-gray-400 hover:text-red-500 transition-colors duration-300"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="mt-4 flex items-center gap-2 flex-wrap">
+                    <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                      Rp. {item.price}
+                    </div>
+                    <div className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                      {item.type}
+                    </div>
+                    <div className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm line-clamp-1">
+                      {item.location}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
       </div>
     </div>
   );
 }
 
-export default App;
+export default JajananKu;
+

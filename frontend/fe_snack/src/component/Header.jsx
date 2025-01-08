@@ -1,39 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Menu, Filter, PlusCircle, Heart, UserCircle } from 'lucide-react';
+import { Search, PlusCircle, Heart, UtensilsCrossed, SquareChartGantt } from 'lucide-react';
 import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
-import axios from 'axios';
 
 const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
-  
-  // Check for token on component mount and when token changes
+  const dropdownRef = useRef(null);
+
   const [isLoggedIn, setIsLoggedIn] = useState(!!Cookies.get('token'));
-  
+  const [isScrolled, setIsScrolled] = useState(false);
+
   useEffect(() => {
     const checkLoginStatus = () => {
       setIsLoggedIn(!!Cookies.get('token'));
     };
     
-    // Check initially
     checkLoginStatus();
-    
-    // Set up an interval to check periodically
     const interval = setInterval(checkLoginStatus, 1000);
     
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      setIsScrolled(scrollPosition > 0);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
-  };
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
   };
 
   const handleLogout = () => {
@@ -43,86 +56,125 @@ const Header = () => {
     window.location.href = '/dashboard';
   };
 
-  const handleSearch = async (e) => {
+  const handleSearch = (e) => {
     e.preventDefault();
-    navigate(`/dashboard?search=${encodeURIComponent(searchQuery)}`);
+    if (searchQuery.trim()) {
+      navigate(`/dashboard?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+    }
   };
-  
 
   const handleProtectedRoute = (route) => {
-  if (!isLoggedIn) {
-    Swal.fire({
-      title: 'Akses Terbatas',
-      text: 'Anda perlu login untuk mengakses fitur ini',
-      icon: 'warning',
-      iconColor: '#70AE6E',
-      showCancelButton: true,
-      confirmButtonColor: '#70AE6E',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Login Sekarang',
-      cancelButtonText: 'Batal',
-      background: '#f0f8ff',
-      backdrop: `
-        rgba(112,174,110,0.4)
-        no-repeat
-      `,
-      customClass: {
-        title: 'text-xl text-gray-800 font-bold',
-        content: 'text-gray-600',
-        confirmButton: 'px-4 py-2 rounded-full transition-colors',
-        cancelButton: 'px-4 py-2 rounded-full transition-colors'
-      }
-    }).then((result) => {
-      if (result.isConfirmed) {
-        navigate('/login');
-      }
-    });
-  } else {
-    navigate(route);
-  }
-};
+    if (!isLoggedIn) {
+      Swal.fire({
+        title: 'Akses Terbatas',
+        text: 'Anda perlu login untuk mengakses fitur ini',
+        icon: 'warning',
+        iconColor: '#70AE6E',
+        showCancelButton: true,
+        confirmButtonColor: '#70AE6E',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Login Sekarang',
+        cancelButtonText: 'Batal',
+        background: '#f0f8ff',
+        width: 400,
+        customClass: {
+          popup: 'relative',
+          title: 'text-xl text-gray-800 font-bold',
+          content: 'text-gray-600',
+          confirmButton: 'px-4 py-2 rounded-full transition-colors',
+          cancelButton: 'px-4 py-2 rounded-full transition-colors',
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate('/login');
+        }
+      });
+    } else {
+      navigate(route);
+    }
+  };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white shadow-sm">
-      <div className="container mx-auto">
-        <div className="flex h-16 items-center justify-between px-4">
-          <Link to="/dashboard" className="flex-shrink-0">
-            <img
-              src="/logo.jpg"
-              alt="Snack Hunt Logo"
-              className="w-[120px] h-[60px] object-contain"
-            />
-          </Link>
-          
-          <div className="flex-1 max-w-md mx-4">
-            <form onSubmit={handleSearch}>
+    <header className={`sticky top-0 z-50 bg-white shadow-md transition-all duration-300 ${
+  isScrolled ? 'py-2' : 'py-4'
+}`}>
+      <div className={`container mx-auto px-4 transition-all duration-300`}>
+        <div className="flex items-center justify-between">
+          {/* Left section with logo and navigation */}
+          <div className="flex items-center space-x-6">
+            <Link to="/dashboard" className="flex-shrink-0">
+              <img
+                src="/logo.jpg"
+                alt="Snack Hunt Logo"
+                className={`transition-all duration-300 object-contain ${
+    isScrolled ? 'w-[140px] h-[60px]' : 'w-[180px] h-[100px]'
+  }`}
+              />
+            </Link>
+
+            {/* Navigation moved up next to logo */}
+            <nav className="flex items-center space-x-6">
+              <button 
+                onClick={() => handleProtectedRoute('/add')} 
+                className="flex items-center space-x-2 text-gray-700 hover:text-green-500 transition-colors duration-300"
+              >
+                <PlusCircle className="h-5 w-5" />
+                <span>Tambah Jajanan</span>
+              </button>
+
+              <button 
+                onClick={() => handleProtectedRoute('/review')} 
+                className="flex items-center space-x-2 text-gray-700 hover:text-green-500 transition-colors duration-300"
+              >
+                <SquareChartGantt className="h-5 w-5" />
+                <span>Reviewku</span>
+              </button>
+              <button 
+                onClick={() => handleProtectedRoute('/jajananku')} 
+                className="flex items-center space-x-2 text-gray-700 hover:text-green-500 transition-colors duration-300"
+              >
+                <UtensilsCrossed className="h-5 w-5" />
+                <span>Jajananku</span>
+              </button>
+
+              <button 
+                onClick={() => handleProtectedRoute('/favoritku')} 
+                className="flex items-center space-x-2 text-gray-700 hover:text-green-500 transition-colors duration-300"
+              >
+                <Heart className="h-5 w-5" />
+                <span>Favoritku</span>
+              </button>
+            </nav>
+          </div>
+
+          {/* Right section with search and profile */}
+          <div className="flex items-center space-x-4">
+            <form onSubmit={handleSearch} className="w-96">
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="mau jajan apa hari ini?"
-                  className="w-full bg-[#E1E9DB] pr-8 pl-3 py-2 text-center rounded-full"
+                  placeholder="Mau jajan apa hari ini?"
+                  className="w-full bg-[#E1E9DB] pr-10 pl-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <Search className="h-4 w-4 text-gray-400" />
+                  <Search className="h-5 w-5 text-gray-400" />
                 </button>
               </div>
             </form>
-          </div>
-          
-          {/* Login/Profile Section */}
-          <div className="flex-shrink-0">
+            
             {isLoggedIn ? (
-              <div className="relative">
+              <div className="relative" ref={dropdownRef}>
                 <button 
                   onClick={toggleDropdown}
-                  className="text-black hover:text-gray-700 rounded-full p-1"
+                  className="text-gray-700 hover:text-green-500 transition-colors duration-300"
                 >
-                 <img
+                  <img
                     src="/profile.jpg"
                     alt="Profile"
-                    className="w-10 h-10 rounded-full mr-4"
+                    className="w-16 h-16 rounded-full mr-4"
                   />
                 </button>
                 {isDropdownOpen && (
@@ -130,6 +182,7 @@ const Header = () => {
                     <Link
                       to="/profile"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsDropdownOpen(false)}
                     >
                       Profile
                     </Link>
@@ -145,64 +198,13 @@ const Header = () => {
             ) : (
               <Link
                 to="/login"
-                className="bg-[#E1E9DB] hover:bg-[#d4dece] rounded-full text-sm px-4 py-2 inline-block"
+                className="bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-600 transition-colors duration-300"
               >
                 Masuk
               </Link>
             )}
           </div>
         </div>
-
-        {/* Navigation */}
-        <nav className="flex items-center justify-center space-x-8 px-4 py-2">
-          <div className="relative">
-            <button
-              onClick={toggleMenu}
-              className="flex items-center space-x-2 text-black-700 hover:text-gray-900 bg-white px-4 py-2 rounded-lg focus:outline-none"
-            >
-              <Menu className="h-4 w-4" />
-              <span className="text-sm">Menu</span>
-            </button>
-
-            {isMenuOpen && (
-              <div className="absolute z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44">
-                <ul className="py-2 text-sm text-gray-700">
-                  <li>
-                    <button
-                      onClick={() => handleProtectedRoute('/review')}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                    >
-                      Reviewku
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      onClick={() => handleProtectedRoute('/jajananku')}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                    >
-                      Jajanku
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            )}
-          </div>
-
-          <button 
-            onClick={() => handleProtectedRoute('/add')} 
-            className="flex items-center space-x-1"
-          >
-            <PlusCircle className="h-4 w-4" />
-            <span className="text-sm">Tambah Jajanan</span>
-          </button>
-          <button 
-            onClick={() => handleProtectedRoute('/favoritku')} 
-            className="flex items-center space-x-1"
-          >
-            <Heart className="h-4 w-4" />
-            <span className="text-sm">Favoritku</span>
-          </button>
-        </nav>
       </div>
     </header>
   );
