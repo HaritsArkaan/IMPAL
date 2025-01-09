@@ -112,7 +112,21 @@ function TambahJajanan() {
     // Validasi input
     if (!name || !price || !seller || !contact || !location  || !type || !image) {
       console.error("All fields are required!");
-      alert("Please fill in all fields.");
+      const Toast = Swal.mixin({
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.onmouseenter = Swal.stopTimer;
+          toast.onmouseleave = Swal.resumeTimer;
+        },
+      });
+      Toast.fire({
+        icon: "error",
+        title: "Pastikan semua field telah diisi!",
+      });
       return;
     }
 
