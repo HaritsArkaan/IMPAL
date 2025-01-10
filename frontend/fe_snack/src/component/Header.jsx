@@ -178,7 +178,7 @@ const Header = () => {
             
             {isLoggedIn ? (
               <div className="relative flex items-center space-x-4" ref={dropdownRef}>
-              <span className="text-gray-700">{username}</span> {/* Tampilkan username */}
+              <span className="text-gray-700 font-bold">{username}</span> {/* Tampilkan username */}
               <button onClick={toggleDropdown}>
                 <img src="/profile.jpg" alt="Profile" className="w-16 h-16 rounded-full" />
               </button>

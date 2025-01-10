@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { Heart, Trash2, MapPin, Phone, Tag, DollarSign, Star, AlertCircle, Clock, Store, Mail } from 'lucide-react';
+import { Heart, Trash2, MapPin, Phone, Tag, DollarSign, Star, AlertCircle, Clock, Store, Mail, ThumbsUp } from 'lucide-react';
 import PopUpReview from './popUpReview';
 import Header from './Header';
 import AdminHeader from './AdminHeader';
@@ -388,6 +388,12 @@ export default function DetailJajanan() {
                 <span className="text-sm font-medium text-gray-600">
                   {averageRating}/5 ({review.length} reviews)
                 </span>
+                {review.length >= 5 && averageRating > 4 && (
+                  <div className="flex items-center gap-2 text-green-500">
+                    <ThumbsUp className="w-5 h-5" />
+                    <span className="font-medium">Direkomendasikan</span>
+                  </div>
+                )}
               </div>
 
               {/* Info Cards */}
