@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import Cookies from 'js-cookie';
 import {jwtDecode} from 'jwt-decode';  // Import jwtDecode directly
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 function EditPopup({ show, onClose, reviewId, snackId }) {
   const [selectedPrice, setSelectedPrice] = useState("");
@@ -57,11 +58,24 @@ function EditPopup({ show, onClose, reviewId, snackId }) {
     });
   };
 
+  const Toast = Swal.mixin({
+    toast: true,
+    position: "top-end",
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+      toast.onmouseenter = Swal.stopTimer;
+      toast.onmouseleave = Swal.resumeTimer;
+    }
+  });
+
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log(input);
     const token = Cookies.get("token");
-    console.log("Token:", token);  // Tambahkan log token untuk debugging
+    console.log("Token:", token);  // Log token for debugging
+
     // API call to submit the review
     axios
       .put(`http://localhost:8080/reviews/${reviewId}`, input, {
@@ -71,12 +85,19 @@ function EditPopup({ show, onClose, reviewId, snackId }) {
       })
       .then((response) => {
         console.log(response.data);
-        alert("Review updated successfully");
+        Toast.fire({
+          icon: "success",
+          title: "Review updated successfully"
+        });
         onClose();
+        window.location.reload(); // Refresh the page
       })
       .catch((error) => {
-        console.error("Error updating review:", error);  // Tambahkan log error untuk debugging
-        alert("Error updating review");
+        console.error("Error updating review:", error);  // Log error for debugging
+        Toast.fire({
+          icon: "error",
+          title: "Failed to update review"
+        });
       });
   };
 
