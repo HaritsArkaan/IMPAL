@@ -270,7 +270,7 @@ function EditJajanan() {
             <label className="block mb-2">Jenis Jajanan</label>
             <p className="text-gray-500 text-sm mb-3">Pilih jenis yang menggambarkan jajananmu!</p>
             <div className="flex flex-wrap gap-3">
-              {["Makanan", "Minuman"].map((type) => (
+              {["Food", "Drink", "Dessert" , "Snack"].map((type) => (
                 <button
                   key={type}
                   name="type"

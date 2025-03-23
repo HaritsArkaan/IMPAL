@@ -195,7 +195,7 @@ function Dashboard() {
         {!searchParams.get('search') && (
           <div className="flex justify-center mb-8">
             <div className="inline-flex rounded-full bg-white p-1 shadow-md">
-              {['Semua', 'Makanan', 'Minuman'].map((category) => (
+              {['Semua', 'Food', 'Drink', 'Dessert', 'Snack'].map((category) => (
                 <button
                   key={category}
                   onClick={() => setActiveCategory(category)}
