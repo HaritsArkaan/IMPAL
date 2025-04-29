@@ -271,7 +271,7 @@ function TambahJajanan() {
             <label className="block mb-2">Jenis Jajanan</label>
             <p className="text-gray-500 text-sm mb-3">Pilih jenis yang menggambarkan jajananmu!</p>
             <div className="flex items-center gap-3">
-              {["Food", "Drink", "Desert", "Snack"].map((type) => (
+              {["Food", "Drink", "Dessert", "Snack"].map((type) => (
                 <button
                   key={type}
                   onClick={() => {
