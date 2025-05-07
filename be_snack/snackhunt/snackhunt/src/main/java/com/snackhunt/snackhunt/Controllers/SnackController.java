@@ -143,7 +143,7 @@ public class SnackController {
     @Operation(summary = "Get a snack's image", description = "Get a snack's image by its image name")
     @GetMapping("/images/{filename}")
     public ResponseEntity<byte[]> getImage(@PathVariable String filename) throws IOException {
-        Path filePath = Paths.get("./uploads", filename);
+        Path filePath = Paths.get("./be_snack/uploads", filename);
 
         if (!Files.exists(filePath)) {
             return ResponseEntity.notFound().build();

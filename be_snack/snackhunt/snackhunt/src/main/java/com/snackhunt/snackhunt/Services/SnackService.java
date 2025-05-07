@@ -23,7 +23,7 @@ public class SnackService {
     @Autowired
     private SequenceGeneratorService sequenceGeneratorService;
 
-    private String uploadDir = "./uploads";
+    private String uploadDir = "./be_snack/uploads";
 
     // Method to save the uploaded file
     private String saveFile(MultipartFile file) throws IOException {
