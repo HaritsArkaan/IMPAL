@@ -20,7 +20,6 @@ function EditJajanan() {
       console.error("No item data found in location.state");
       navigate("/dashboard"); // Redirect ke halaman dashboard
     }
-
     // Set initial preview image jika ada
     if (location.state && location.state.item) {
       const { item } = location.state;
@@ -54,7 +53,7 @@ function EditJajanan() {
     rating: item.rating || 0,
     type: item.type || "",
     userId: jwtDecode(Cookies.get("token")).id,
-    image: "",
+    image: item.image_URL||"",
   });
   const popUpSuccess = () => {
     const Toast = Swal.mixin({
